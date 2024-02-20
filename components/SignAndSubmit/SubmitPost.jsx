@@ -382,8 +382,10 @@ export const SignAndSubmitTx = ({ close }) => {
           NumCopies: nftCopies,
           NFTRoyaltyToCreatorBasisPoints: convertToBasisPoints(creatorRoyaltyPercentage),
           NFTRoyaltyToCoinBasisPoints: convertToBasisPoints(coinHolderRoyaltyPercentage),
-          MinBidAmountNanos: convertDESOToNanos(minBidPrice),
-          BuyNowPriceNanos: (checked && convertDESOToNanos(buyNowPrice)) || undefined,
+          MinBidAmountNanos: checked
+            ? convertDESOToNanos(buyNowPrice)
+            : convertDESOToNanos(minBidPrice),
+          BuyNowPriceNanos: checked ? convertDESOToNanos(buyNowPrice) : undefined,
           IsBuyNow: checked,
           AdditionalDESORoyaltiesMap: extraCreatorRoyalties || undefined,
           HasUnlockable: false,
@@ -940,7 +942,7 @@ export const SignAndSubmitTx = ({ close }) => {
             />
           </Group>
           <Space h="xs" />
-          {checked && (
+          {checked ? (
             <>
               <NumberInput
                 variant="filled"
@@ -957,26 +959,30 @@ export const SignAndSubmitTx = ({ close }) => {
               {checked && buyNowPrice && <> ≈ {convertDESOToUSD(buyNowPrice)}</>}
               <Space h="xs" />
             </>
+          ) : (
+            <>
+              <NumberInput
+                variant="filled"
+                label="Minimum Bid"
+                description="Set the minimum bid price for your NFT."
+                placeholder="Enter Amount in $DESO"
+                allowNegative={false}
+                hideControls
+                prefix="$DESO "
+                value={minBidPrice}
+                onChange={setMinBidPrice}
+                thousandSeparator=","
+                error={
+                  checked &&
+                  buyNowPrice &&
+                  minBidPrice < buyNowPrice &&
+                  'Min Bid must be greater than or equal to Buy Now Price'
+                }
+              />
+              {minBidPrice && <> ≈ {convertDESOToUSD(minBidPrice)}</>}
+            </>
           )}
-          <NumberInput
-            variant="filled"
-            label="Minimum Bid"
-            description="Set the minimum bid price for your NFT."
-            placeholder="Enter Amount in $DESO"
-            allowNegative={false}
-            hideControls
-            prefix="$DESO "
-            value={minBidPrice}
-            onChange={setMinBidPrice}
-            thousandSeparator=","
-            error={
-              checked &&
-              buyNowPrice &&
-              minBidPrice < buyNowPrice &&
-              'Min Bid must be greater than or equal to Buy Now Price'
-            }
-          />
-          {minBidPrice && <> ≈ {convertDESOToUSD(minBidPrice)}</>}
+
           <Space h="lg" />
           <Divider />
           <Space h="lg" />

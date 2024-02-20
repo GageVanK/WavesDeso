@@ -197,16 +197,19 @@ export function MantineHeader() {
                 </Tooltip>
 
                 <Menu.Dropdown>
+                  <Space h="xs" />
                   <Group justify="right">
-                    <UnstyledButton
+                    <Button
+                      variant="light"
+                      size="xs"
                       mr={11}
                       onClick={() => {
                         router.push('/notifications');
                         setOpened(false);
                       }}
                     >
-                      <Text size="xs">View More</Text>
-                    </UnstyledButton>
+                      View More
+                    </Button>
                   </Group>
 
                   <ScrollArea h={555}>
