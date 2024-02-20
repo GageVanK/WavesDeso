@@ -92,7 +92,7 @@ export const Stream = () => {
   });
 
   const handleCreateStream = async () => {
-    await userStream.mutate?.();
+    userStream.mutate?.();
     console.log(userStream);
     setStreamKey(userStream.data?.streamKey);
     setStreamPlaybackId(userStream.data?.playbackId);
@@ -104,7 +104,6 @@ export const Stream = () => {
     try {
       await handleCreateStream();
 
-      console.log(streamId, streamKey, streamPlaybackId);
       await setDoc(doc(db, 'streams', currentUser.ProfileEntryResponse?.Username), {
         streamId: streamId,
         streamKey: streamKey,
