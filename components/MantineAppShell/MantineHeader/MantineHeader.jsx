@@ -522,6 +522,19 @@ export function MantineHeader() {
                       </Menu.Item>
                     ))}
 
+                    {currentUser && (
+                      <>
+                        <Menu.Divider />
+                        <Menu.Item
+                          component={Link}
+                          href="/closeFriends"
+                          leftSection={<LiaUsersSolid size={17} />}
+                        >
+                          Close Friends
+                        </Menu.Item>
+                      </>
+                    )}
+
                     <Menu.Divider />
 
                     <Menu.Label>Visit DeSo</Menu.Label>
