@@ -432,7 +432,8 @@ export const Stream = () => {
         <>
           <Group>
             <Text fs="italic" ml={77} fw={700} size="xl">
-              {currentUser?.ProfileEntryResponse?.ExtraData?.WavesStreamTitle ||
+              {streamTitle ||
+                currentUser?.ProfileEntryResponse?.ExtraData?.WavesStreamTitle ||
                 `${currentUser?.ProfileEntryResponse?.Username}'s Wave`}
             </Text>
 

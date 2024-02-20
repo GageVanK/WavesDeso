@@ -518,69 +518,78 @@ export default function Wave() {
             </Card.Section>
             <Space h="md" />
             <Group justify="space-between">
-              <ActionIcon.Group>
-                <CopyButton value={`https://desowaves.vercel.app/wave/${userName}`} timeout={2000}>
-                  {({ copied, copy }) => (
-                    <>
-                      <Tooltip label={copied ? 'Copied' : `Copy Wave Link`}>
+              <Group>
+                <ActionIcon.Group>
+                  <CopyButton
+                    value={`https://desowaves.vercel.app/wave/${userName}`}
+                    timeout={2000}
+                  >
+                    {({ copied, copy }) => (
+                      <>
+                        <Tooltip label={copied ? 'Copied' : `Copy Wave Link`}>
+                          <ActionIcon
+                            variant="default"
+                            size="xl"
+                            aria-label="Share Button"
+                            onClick={copy}
+                          >
+                            {copied ? (
+                              <>
+                                <IconCheck style={{ width: rem(20) }} stroke={1.5} />
+                              </>
+                            ) : (
+                              <>
+                                <IconScreenShare style={{ width: rem(20) }} stroke={1.5} />
+                              </>
+                            )}
+                          </ActionIcon>
+                        </Tooltip>
+                      </>
+                    )}
+                  </CopyButton>
+                  {currentUser && (
+                    <Tooltip label={`Promote ${profile?.Username}'s Wave Onchain`}>
+                      <ActionIcon
+                        onClick={postStreamToDeso}
+                        variant="default"
+                        size="xl"
+                        aria-label="Launch"
+                      >
+                        <IconRocket style={{ width: rem(20) }} stroke={1.5} />
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                  {currentUser &&
+                    currentUser?.PublicKeyBase58Check !== profile.PublicKeyBase58Check &&
+                    (isCloseFriend || didCloseFriendId ? (
+                      <Tooltip label={`Remove ${profile?.Username}'s as Close Friend`}>
                         <ActionIcon
                           variant="default"
                           size="xl"
-                          aria-label="Share Button"
-                          onClick={copy}
+                          aria-label="Remove Close Friend"
+                          onClick={() => handleRemoveCloseFriend()}
                         >
-                          {copied ? (
-                            <>
-                              <IconCheck style={{ width: rem(20) }} stroke={1.5} />
-                            </>
-                          ) : (
-                            <>
-                              <IconScreenShare style={{ width: rem(20) }} stroke={1.5} />
-                            </>
-                          )}
+                          <IconUserMinus style={{ width: rem(20) }} stroke={1.5} />
                         </ActionIcon>
                       </Tooltip>
-                    </>
-                  )}
-                </CopyButton>
-                {currentUser && (
-                  <Tooltip label={`Promote ${profile?.Username}'s Wave Onchain`}>
-                    <ActionIcon
-                      onClick={postStreamToDeso}
-                      variant="default"
-                      size="xl"
-                      aria-label="Launch"
-                    >
-                      <IconRocket style={{ width: rem(20) }} stroke={1.5} />
-                    </ActionIcon>
-                  </Tooltip>
-                )}
-                {currentUser &&
-                  currentUser?.PublicKeyBase58Check !== profile.PublicKeyBase58Check &&
-                  (isCloseFriend || didCloseFriendId ? (
-                    <Tooltip label={`Remove ${profile?.Username}'s as Close Friend`}>
-                      <ActionIcon
-                        variant="default"
-                        size="xl"
-                        aria-label="Remove Close Friend"
-                        onClick={() => handleRemoveCloseFriend()}
-                      >
-                        <IconUserMinus style={{ width: rem(20) }} stroke={1.5} />
-                      </ActionIcon>
-                    </Tooltip>
-                  ) : (
-                    <Tooltip label={`Add ${profile?.Username}'s as Close Friend`}>
-                      <ActionIcon
-                        variant="default"
-                        size="xl"
-                        aria-label="Add Close Friend"
-                        onClick={() => handleAddCloseFriend()}
-                      >
-                        <IconUserPlus style={{ width: rem(20) }} stroke={1.5} />
-                      </ActionIcon>
-                    </Tooltip>
-                  ))}
-              </ActionIcon.Group>
+                    ) : (
+                      <Tooltip label={`Add ${profile?.Username}'s as Close Friend`}>
+                        <ActionIcon
+                          variant="default"
+                          size="xl"
+                          aria-label="Add Close Friend"
+                          onClick={() => handleAddCloseFriend()}
+                        >
+                          <IconUserPlus style={{ width: rem(20) }} stroke={1.5} />
+                        </ActionIcon>
+                      </Tooltip>
+                    ))}
+                </ActionIcon.Group>
+                <Text fw={555} size="xl">
+                  {profile.ExtraData?.WavesStreamTitle || `${profile?.Username}'s Wave`}
+                </Text>
+              </Group>
+
               <SubscriptionModal
                 publickey={profile.PublicKeyBase58Check}
                 username={profile?.Username}
