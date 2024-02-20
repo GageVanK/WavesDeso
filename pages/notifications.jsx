@@ -478,7 +478,7 @@ export default function NotificationsPage() {
 
                                       <UnstyledButton
                                         component={Link}
-                                        href={`/post/${n.notification.Metadata?.CreatePostAssociationTxindexMetadata?.PostHashHex}`}
+                                        href={`/posts/${n.notification.Metadata?.CreatePostAssociationTxindexMetadata?.PostHashHex}`}
                                       >
                                         <Group>
                                           <Text fw={500} size="sm" td="">
@@ -613,7 +613,7 @@ export default function NotificationsPage() {
 
                                       <UnstyledButton
                                         component={Link}
-                                        href={`/post/${n.notification.Metadata.SubmitPostTxindexMetadata.PostHashBeingModifiedHex}`}
+                                        href={`/posts/${n.notification.Metadata.SubmitPostTxindexMetadata.PostHashBeingModifiedHex}`}
                                       >
                                         <Text fw={500} size="sm">
                                           Reposted
@@ -688,7 +688,7 @@ export default function NotificationsPage() {
 
                                       <UnstyledButton
                                         component={Link}
-                                        href={`/post/${n.relatedParentPost?.PostHashHex}`}
+                                        href={`/posts/${n.relatedParentPost?.PostHashHex}`}
                                       >
                                         <Group>
                                           <Text fw={500} size="sm" td="">
@@ -809,7 +809,7 @@ export default function NotificationsPage() {
 
                                       <UnstyledButton
                                         component={Link}
-                                        href={`/post/${n.relatedParentPost?.PostHashHex}`}
+                                        href={`/posts/${n.relatedParentPost?.PostHashHex}`}
                                       >
                                         <Group>
                                           <Text fw={500} size="sm">
@@ -1184,7 +1184,7 @@ export default function NotificationsPage() {
 
                                   <UnstyledButton
                                     component={Link}
-                                    href={`/post/${
+                                    href={`/posts/${
                                       n.notification.Metadata?.CreatePostAssociationTxindexMetadata
                                         ?.PostHashHex ||
                                       n.notification.Metadata?.LikeTxindexMetadata.PostHashHex
@@ -1250,7 +1250,7 @@ export default function NotificationsPage() {
 
                                   <UnstyledButton
                                     component={Link}
-                                    href={`/post/${n.notification.Metadata?.CreatePostAssociationTxindexMetadata?.PostHashHex}`}
+                                    href={`/posts/${n.notification.Metadata?.CreatePostAssociationTxindexMetadata?.PostHashHex}`}
                                   >
                                     <Group>
                                       <Text fw={500} size="sm" td="">
@@ -1349,7 +1349,7 @@ export default function NotificationsPage() {
 
                                   <UnstyledButton
                                     component={Link}
-                                    href={`/post/${n.relatedParentPost?.PostHashHex}`}
+                                    href={`/posts/${n.relatedParentPost?.PostHashHex}`}
                                   >
                                     <Group>
                                       <Text fw={500} size="sm" td="">
@@ -1544,7 +1544,7 @@ export default function NotificationsPage() {
 
                                   <UnstyledButton
                                     component={Link}
-                                    href={`/post/${n.notification.Metadata.SubmitPostTxindexMetadata.PostHashBeingModifiedHex}`}
+                                    href={`/posts/${n.notification.Metadata.SubmitPostTxindexMetadata.PostHashBeingModifiedHex}`}
                                   >
                                     <Text fw={500} size="sm" td="">
                                       Reposted
