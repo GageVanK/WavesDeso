@@ -102,7 +102,7 @@ export const Stream = () => {
   // Trigger Create Stream function + Store stream info in firebase
   const handleStoreStream = async () => {
     try {
-      await handleCreateStream();
+      handleCreateStream();
 
       await setDoc(doc(db, 'streams', currentUser.ProfileEntryResponse?.Username), {
         streamId: streamId,
