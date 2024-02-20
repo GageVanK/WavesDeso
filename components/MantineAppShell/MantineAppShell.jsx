@@ -59,7 +59,6 @@ export function MantineAppShell({ children }) {
       </Modal>
 
       <AppShell
-        padding={2}
         header={{ height: 60 }}
         navbar={{
           width: 300,
