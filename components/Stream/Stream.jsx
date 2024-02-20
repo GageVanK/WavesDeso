@@ -606,7 +606,6 @@ export const Stream = () => {
                 `${currentUser?.ProfileEntryResponse?.Username}'s Wave`
               }
               playbackId={streamPlaybackId}
-              lowLatency="force"
             />
           </Group>
 
