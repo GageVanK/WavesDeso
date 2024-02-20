@@ -383,7 +383,7 @@ export const Stream = () => {
     if (currentUser.ProfileEntryResponse.Username) {
       fetchStream();
     }
-  }, [currentUser]);
+  }, [currentUser, currentUser.ProfileEntryResponse?.Username]);
 
   // Fetch Stream Info on mount or when user changes
   useEffect(() => {
