@@ -500,7 +500,8 @@ export default function NotificationsPage() {
                           )}
 
                         {/* Mentions */}
-                        {n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
+                        {n.relatedModifiedPost?.PostExtraData?.App !== 'DesoPy' &&
+                          n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
                           n.notification.Metadata.AffectedPublicKeys[0].Metadata ===
                             'MentionedPublicKeyBase58Check' && (
                             <>
@@ -558,7 +559,8 @@ export default function NotificationsPage() {
                           )}
 
                         {/* Reposts & Quotes */}
-                        {n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
+                        {n.relatedModifiedPost?.PostExtraData?.App !== 'DesoPy' &&
+                          n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
                           n.notification.Metadata.AffectedPublicKeys[0].Metadata ===
                             'RepostedPublicKeyBase58Check' && (
                             <>
@@ -632,7 +634,8 @@ export default function NotificationsPage() {
                           )}
 
                         {/* Comments */}
-                        {n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
+                        {n.relatedModifiedPost?.PostExtraData?.App !== 'DesoPy' &&
+                          n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
                           n.notification.Metadata.AffectedPublicKeys.length >= 2 &&
                           n.notification.Metadata.AffectedPublicKeys[0].Metadata ===
                             'ParentPosterPublicKeyBase58Check' && (
@@ -1055,7 +1058,8 @@ export default function NotificationsPage() {
                 {notifications.map((n) => (
                   <>
                     {/* Mentions */}
-                    {n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
+                    {n.relatedModifiedPost?.PostExtraData?.App !== 'DesoPy' &&
+                      n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
                       n.notification.Metadata.AffectedPublicKeys[0].Metadata ===
                         'MentionedPublicKeyBase58Check' && (
                         <>
@@ -1294,7 +1298,8 @@ export default function NotificationsPage() {
                 {notifications.map((n) => (
                   <>
                     {/* Comments */}
-                    {n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
+                    {n.relatedModifiedPost?.PostExtraData?.App !== 'DesoPy' &&
+                      n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
                       n.notification.Metadata.AffectedPublicKeys.length >= 2 &&
                       n.notification.Metadata.AffectedPublicKeys[0].Metadata ===
                         'ParentPosterPublicKeyBase58Check' && (
@@ -1490,7 +1495,8 @@ export default function NotificationsPage() {
                 {notifications.map((n) => (
                   <>
                     {/* Reposts & Quotes */}
-                    {n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
+                    {n.relatedModifiedPost?.PostExtraData?.App !== 'DesoPy' &&
+                      n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
                       n.notification.Metadata.AffectedPublicKeys[0].Metadata ===
                         'RepostedPublicKeyBase58Check' && (
                         <>

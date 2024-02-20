@@ -37,6 +37,7 @@ import {
   List,
   Box,
   useMantineTheme,
+  Checkbox,
 } from '@mantine/core';
 import { GiWaveCrest } from 'react-icons/gi';
 import { DeSoIdentityContext } from 'react-deso-protocol';
@@ -74,6 +75,8 @@ export const SignAndSubmitTx = ({ close }) => {
   const [pollOptions, setPollOptions] = useState(['', '']);
   const [isLoadingPost, setIsLoadingPost] = useState(false);
   const [checkedNft, setCheckedNft] = useState(false);
+  const [uploadInitiated, setUploadInitiated] = useState(false);
+  const [checkedAutoPost, setCheckedAutoPost] = useState(false);
   const theme = useMantineTheme();
   // NFT Stuff
   const [nftCopies, setNftCopies] = useState(1);
@@ -108,7 +111,6 @@ export const SignAndSubmitTx = ({ close }) => {
 
   // Convert percentage user input to basis points for minting
   const convertToBasisPoints = (percentage) => {
-    // Convert percentage to basis points
     const basisPoints = percentage * 100;
     return basisPoints;
   };
@@ -116,15 +118,13 @@ export const SignAndSubmitTx = ({ close }) => {
   // Convert DESO to nanos for minting
   const convertDESOToNanos = (deso) => {
     const nanoToDeso = 0.000000001;
-    const nanos = Math.round(deso / nanoToDeso); // Round to the nearest integer
-
+    const nanos = Math.round(deso / nanoToDeso);
     return Number(nanos);
   };
 
   // Convert DESO to USD for minting
   const convertDESOToUSD = (deso) => {
     let usdValue = deso * desoUSD;
-
     if (usdValue < 0.01) {
       usdValue = 0.01;
     }
@@ -151,10 +151,10 @@ export const SignAndSubmitTx = ({ close }) => {
 
   // Add selected creator
   const handleAddCreator = (publicKey) => {
-    // Add selected creator with default percentage
+    // Add selected creator with default percentage - 10%
     setExtraCreatorRoyalties((prevState) => ({
       ...prevState,
-      [publicKey]: convertToBasisPoints(0), // Convert default percentage to basis points
+      [publicKey]: convertToBasisPoints(10), // Convert default percentage to basis points
     }));
     // Clear search results and value
     setSearchResults([]);
@@ -243,11 +243,6 @@ export const SignAndSubmitTx = ({ close }) => {
       : null
   );
 
-  const { data: metrics } = useAssetMetrics({
-    assetId: asset?.[0].id,
-    refetchInterval: 30000,
-  });
-
   const isVideoLoading = useMemo(
     () => status === 'loading' || (asset?.[0] && asset[0].status?.phase !== 'ready'),
     [status, asset]
@@ -267,7 +262,6 @@ export const SignAndSubmitTx = ({ close }) => {
     [progress]
   );
 
-  const [uploadInitiated, setUploadInitiated] = useState(false);
   const handleUploadImage = async () => {
     if (uploadInitiated) {
       return; // Exit if upload has already been initiated
@@ -425,6 +419,10 @@ export const SignAndSubmitTx = ({ close }) => {
         setPoll(false);
       }
 
+      if (checkedAutoPost) {
+        setCheckedAutoPost(false);
+      }
+
       if (checkedNft) {
         setCheckedNft(false);
         setNftCopies(1);
@@ -445,6 +443,78 @@ export const SignAndSubmitTx = ({ close }) => {
       console.log(`something happened: ${err}`);
     }
   };
+
+  const handleCreateAutoPost = async () => {
+    try {
+      const resp = await submitPost({
+        UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
+        BodyObj: {
+          Body: bodyText || `${currentUser.ProfileEntryResponse?.Username}'s Video`,
+          VideoURLs:
+            video && asset && asset[0]?.playbackId
+              ? [`https://lvpr.tv/?v=${asset[0].playbackId}`]
+              : [],
+        },
+      });
+
+      if (checkedNft && resp?.submittedTransactionResponse?.PostEntryResponse) {
+        const request = {
+          UpdaterPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+          NFTPostHashHex: resp?.submittedTransactionResponse?.PostEntryResponse?.PostHashHex,
+          NumCopies: nftCopies,
+          NFTRoyaltyToCreatorBasisPoints: convertToBasisPoints(creatorRoyaltyPercentage),
+          NFTRoyaltyToCoinBasisPoints: convertToBasisPoints(coinHolderRoyaltyPercentage),
+          MinBidAmountNanos: checked
+            ? convertDESOToNanos(buyNowPrice)
+            : convertDESOToNanos(minBidPrice),
+          BuyNowPriceNanos: checked ? convertDESOToNanos(buyNowPrice) : undefined,
+          IsBuyNow: checked,
+          AdditionalDESORoyaltiesMap: extraCreatorRoyalties || undefined,
+          HasUnlockable: false,
+          IsForSale: true,
+          MinFeeRateNanosPerKB: 1000,
+        };
+
+        await createNFT(request);
+      }
+
+      notifications.show({
+        title: 'Success',
+        icon: <IconCheck size="1.1rem" />,
+        color: 'green',
+        message: 'Post was successfully submitted!',
+      });
+
+      setBodyText('');
+      setCheckedAutoPost(false);
+
+      if (video) {
+        setVideo(null);
+        resetVideoRef.current?.();
+      }
+
+      if (checkedNft) {
+        setCheckedNft(false);
+        setNftCopies(1);
+        setCreatorRoyaltyPercentage(0);
+        setCoinHolderRoyaltyPercentage(0);
+        setExtraCreatorRoyalties({});
+        setMinBidPrice();
+        if (checked && buyNowPrice) {
+          setBuyNowPrice();
+          checked(false);
+        }
+      }
+    } catch (err) {
+      console.log(`something happened: ${err}`);
+    }
+  };
+
+  useEffect(() => {
+    if (checkedAutoPost && !isVideoLoading) {
+      handleCreateAutoPost();
+    }
+  }, [checkedAutoPost, isVideoLoading]);
 
   if (!currentUser || !currentUser.BalanceNanos) {
     return (
@@ -675,9 +745,19 @@ export const SignAndSubmitTx = ({ close }) => {
 
       {progressFormatted && (
         <>
-          <Text fz="sm" c="dimmed">
-            {progressFormatted}
-          </Text>
+          <Group>
+            <Text fz="sm" c="dimmed">
+              {progressFormatted}
+            </Text>
+
+            <Checkbox
+              checked={checkedAutoPost}
+              onChange={(event) => setCheckedAutoPost(event.currentTarget.checked)}
+              description="Autopost"
+              size="xs"
+              radius="xl"
+            />
+          </Group>
 
           <Space h="xs" />
         </>
