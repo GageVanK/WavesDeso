@@ -1092,7 +1092,7 @@ export default function Post({ post, username }) {
                   <Menu.Item
                     leftSection={<IconMessageShare style={{ width: rem(16), height: rem(16) }} />}
                     component={Link}
-                    href={`/post/${post.PostHashHex}`}
+                    href={`/posts/${post.PostHashHex}`}
                   >
                     {post.IsNFT ? 'View NFT' : 'View Post'}
                   </Menu.Item>

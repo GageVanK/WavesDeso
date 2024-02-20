@@ -5,7 +5,6 @@ import { PiShootingStarLight } from 'react-icons/pi';
 import { useRouter } from 'next/router';
 import { DeSoIdentityContext } from 'react-deso-protocol';
 import { getSingleProfile } from 'deso-protocol';
-
 import { useContext, useState, useEffect } from 'react';
 import { LiaGlobeSolid } from 'react-icons/lia';
 import { MantineHeader } from '@/components/MantineAppShell/MantineHeader/MantineHeader';

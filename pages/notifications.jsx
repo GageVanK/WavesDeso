@@ -410,7 +410,7 @@ export default function NotificationsPage() {
 
                                       <UnstyledButton
                                         component={Link}
-                                        href={`/post/${
+                                        href={`/posts/${
                                           n.notification.Metadata
                                             ?.CreatePostAssociationTxindexMetadata?.PostHashHex ||
                                           n.notification.Metadata?.LikeTxindexMetadata.PostHashHex
