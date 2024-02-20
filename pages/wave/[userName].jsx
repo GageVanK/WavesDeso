@@ -588,25 +588,23 @@ export default function Wave() {
               />
             </Group>
 
-            <Space h="md" />
+            <Space h={55} />
 
-            <Paper shadow="xl" radius="md" p="xl">
-              <Text
-                fz="sm"
-                style={{
-                  maxWidth: '100%',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'wrap',
-                }}
-                dangerouslySetInnerHTML={{
-                  __html:
-                    profile && profile.Description
-                      ? replaceURLs(profile.Description.replace(/\n/g, '<br>'))
-                      : '',
-                }}
-              />
-            </Paper>
+            <Text
+              fz="sm"
+              style={{
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'wrap',
+              }}
+              dangerouslySetInnerHTML={{
+                __html:
+                  profile && profile.Description
+                    ? replaceURLs(profile.Description.replace(/\n/g, '<br>'))
+                    : '',
+              }}
+            />
 
             <Space h="sm" />
 
