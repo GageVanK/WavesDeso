@@ -91,20 +91,25 @@ export const Stream = () => {
     record: true,
   });
 
-  // Trigger Create Stream function + Store stream info in firebase
   const handleCreateStream = async () => {
-    try {
-      await userStream.mutate?.();
+    await userStream.mutate?.();
+    setStreamKey(userStream.data?.streamKey);
+    setStreamPlaybackId(userStream.data?.playbackId);
+    setStreamId(userStream.data?.id);
+  };
 
-      await setStreamKey(userStream.data?.streamKey);
-      await setStreamPlaybackId(userStream.data?.playbackId);
-      await setStreamId(userStream.data?.id);
+  // Trigger Create Stream function + Store stream info in firebase
+  const handleStoreStream = async () => {
+    try {
+      handleCreateStream();
 
       await setDoc(doc(db, 'streams', currentUser.ProfileEntryResponse?.Username), {
         streamId: streamId,
         streamKey: streamKey,
         playbackId: streamPlaybackId,
       });
+
+      fetchStream();
     } catch (error) {
       console.error('Error occurred creating and storing your intial stream.', error);
     }
@@ -120,7 +125,7 @@ export const Stream = () => {
       setStreamPlaybackId(streamData.data().playbackId);
       setStreamId(streamData.data().streamId);
     } else {
-      handleCreateStream();
+      handleStoreStream();
     }
   };
 
