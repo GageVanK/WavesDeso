@@ -75,6 +75,7 @@ export const Stream = () => {
   const [ytStreamKey, setYTStreamKey] = useState('');
   const [ytStreamURL, setYTStreamURL] = useState('');
   const onError = useCallback((error) => console.log(error), []);
+  const [isStreamToStore, setIsStreamToStore] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
   const [playbackStatus, setPlaybackStatus] = useState(null);
@@ -92,11 +93,19 @@ export const Stream = () => {
   });
 
   // Trigger Create Stream function + Store stream info in firebase
-  const handleCreateAndStoreStream = async () => {
+  const handleCreateStream = async () => {
     try {
       // Create the stream
       userStream.mutate?.();
+      console.log(userStream);
+    } catch (error) {
+      console.error('Error occurred creating and storing your initial stream.', error);
+    }
+  };
 
+  // Trigger Create Stream function + Store stream info in firebase
+  const handleStoreStream = async () => {
+    try {
       // Set stream key, playback id, and id
       setStreamKey(userStream.data?.streamKey);
       setStreamPlaybackId(userStream.data?.playbackId);
@@ -108,9 +117,6 @@ export const Stream = () => {
         streamKey: userStream.data?.streamKey,
         playbackId: userStream.data?.playbackId,
       });
-
-      // Fetch stream info
-      fetchStream();
     } catch (error) {
       console.error('Error occurred creating and storing your initial stream.', error);
     }
@@ -126,7 +132,7 @@ export const Stream = () => {
       setStreamPlaybackId(streamData.data().playbackId);
       setStreamId(streamData.data().streamId);
     } else {
-      handleCreateAndStoreStream();
+      handleCreateStream();
     }
   };
 
@@ -378,6 +384,13 @@ export const Stream = () => {
       fetchStream();
     }
   }, [currentUser]);
+
+  // Fetch Stream Info on mount or when user changes
+  useEffect(() => {
+    if (userStream.isSuccess) {
+      handleStoreStream();
+    }
+  }, [userStream, userStream.isSuccess]);
 
   return (
     <>
