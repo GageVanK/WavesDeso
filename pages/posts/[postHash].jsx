@@ -1,7 +1,8 @@
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getSinglePost, getPostsStateless } from 'deso-protocol';
-import { Space, Container, Group } from '@mantine/core';
+import { Space, Container, Group, Button, Text, Box } from '@mantine/core';
 import Post from '@/components/Post';
 
 export default function PostPage() {
@@ -36,14 +37,16 @@ export default function PostPage() {
           CommentLimit: 50,
         });
 
-        setSinglePost(postData.PostFound);
+        setSinglePost(postData?.PostFound);
         console.log(postData);
 
         // Fetch top-level comments
-        setTopLevelComments(postData.PostFound.Comments);
+        setTopLevelComments(postData.PostFound?.Comments);
 
         // Fetch nested comments recursively
-        const updatedTopLevelComments = await fetchCommentsRecursively(postData.PostFound.Comments);
+        const updatedTopLevelComments = await fetchCommentsRecursively(
+          postData.PostFound?.Comments
+        );
         setTopLevelComments(updatedTopLevelComments);
       } catch (error) {
         console.error('Error fetching post:', error);
@@ -54,6 +57,8 @@ export default function PostPage() {
       fetchPostAndComments();
     }
   }, [postHash]);
+
+  console.log(singlePost);
 
   const Comment = ({ comment }) => (
     <Container size="lg" key={comment.PostHashHex}>
@@ -67,18 +72,33 @@ export default function PostPage() {
       )}
     </Container>
   );
-
   return (
     <>
       <Space h={55} />
-      <Container size="xxl">
-        <Post post={singlePost} username={singlePost.ProfileEntryResponse?.Username} />
-      </Container>
-
-      {topLevelComments && topLevelComments.length > 0 ? (
-        topLevelComments.map((comment) => <Comment key={comment.PostHashHex} comment={comment} />)
+      {singlePost.PostHashHex === undefined ? (
+        <Container size="xxl">
+          <Text ta="center">Post Does Not Exist.</Text>
+          <Space h="md" />
+          <Group justify="center">
+            <Button component={Link} href="/">
+              Back Home
+            </Button>
+          </Group>
+        </Container>
       ) : (
-        <></>
+        <>
+          <Container size="xxl">
+            <Post post={singlePost} username={singlePost.ProfileEntryResponse?.Username} />
+          </Container>
+
+          {topLevelComments && topLevelComments.length > 0 ? (
+            topLevelComments.map((comment) => (
+              <Comment key={comment.PostHashHex} comment={comment} />
+            ))
+          ) : (
+            <></>
+          )}
+        </>
       )}
       <Space h={111} />
     </>

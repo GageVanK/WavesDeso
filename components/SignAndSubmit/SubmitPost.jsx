@@ -899,23 +899,27 @@ export const SignAndSubmitTx = ({ close }) => {
       <Space h="sm" />
       <Group postion="apart">
         <Space h="sm" />
-        <Button
-          variant="gradient"
-          gradient={{ from: 'cyan', to: 'indigo' }}
-          raduis="sm"
-          onClick={handleCreatePost}
-          disabled={
-            !bodyText.trim() ||
-            isLoadingPost ||
-            (poll && pollOptions.filter((option) => option.trim() !== '').length < 2) ||
-            (checkedNft && !minBidPrice) ||
-            (checkedNft && checked && !buyNowPrice) ||
-            (checkedNft && checked && minBidPrice < buyNowPrice)
-          }
-          loading={isLoadingPost}
-        >
-          Create
-        </Button>
+        {checkedAutoPost ? (
+          <></>
+        ) : (
+          <Button
+            variant="gradient"
+            gradient={{ from: 'cyan', to: 'indigo' }}
+            raduis="sm"
+            onClick={handleCreatePost}
+            disabled={
+              !bodyText.trim() ||
+              isLoadingPost ||
+              (poll && pollOptions.filter((option) => option.trim() !== '').length < 2) ||
+              (checkedNft && !minBidPrice) ||
+              (checkedNft && checked && !buyNowPrice) ||
+              (checkedNft && checked && minBidPrice < buyNowPrice)
+            }
+            loading={isLoadingPost}
+          >
+            Create
+          </Button>
+        )}
 
         <FileButton
           onChange={setImageFile}
