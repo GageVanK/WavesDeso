@@ -1,0 +1,15 @@
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCIt68EuZ7yjI6Ttv2bcLL3eD79L_28iKQ",
+  authDomain: "wavesdeso.firebaseapp.com",
+  databaseURL: "https://wavesdeso-default-rtdb.firebaseio.com",
+  projectId: "wavesdeso",
+  storageBucket: "wavesdeso.appspot.com",
+  messagingSenderId: "370922978381",
+  appId: "1:370922978381:web:3ec4429ca4460d71abb004"
+};
+
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
