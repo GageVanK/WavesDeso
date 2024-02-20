@@ -91,28 +91,28 @@ export const Stream = () => {
     record: true,
   });
 
-  const handleCreateStream = async () => {
-    userStream.mutate?.();
-    console.log(userStream);
-    setStreamKey(userStream.data?.streamKey);
-    setStreamPlaybackId(userStream.data?.playbackId);
-    setStreamId(userStream.data?.id);
-  };
-
   // Trigger Create Stream function + Store stream info in firebase
-  const handleStoreStream = async () => {
+  const handleCreateAndStoreStream = async () => {
     try {
-      handleCreateStream();
+      // Create the stream
+      await userStream.mutate?.();
 
+      // Set stream key, playback id, and id
+      setStreamKey(userStream.data?.streamKey);
+      setStreamPlaybackId(userStream.data?.playbackId);
+      setStreamId(userStream.data?.id);
+
+      // Store stream info in Firestore
       await setDoc(doc(db, 'streams', currentUser.ProfileEntryResponse?.Username), {
-        streamId: streamId,
-        streamKey: streamKey,
-        playbackId: streamPlaybackId,
+        streamId: userStream.data?.id,
+        streamKey: userStream.data?.streamKey,
+        playbackId: userStream.data?.playbackId,
       });
 
+      // Fetch stream info
       fetchStream();
     } catch (error) {
-      console.error('Error occurred creating and storing your intial stream.', error);
+      console.error('Error occurred creating and storing your initial stream.', error);
     }
   };
 
@@ -126,7 +126,7 @@ export const Stream = () => {
       setStreamPlaybackId(streamData.data().playbackId);
       setStreamId(streamData.data().streamId);
     } else {
-      handleStoreStream();
+      handleCreateAndStoreStream();
     }
   };
 
@@ -419,8 +419,7 @@ export const Stream = () => {
         <>
           <Group>
             <Text fs="italic" ml={77} fw={700} size="xl">
-              {streamTitle ||
-                currentUser?.ProfileEntryResponse?.ExtraData?.WavesStreamTitle ||
+              {currentUser?.ProfileEntryResponse?.ExtraData?.WavesStreamTitle ||
                 `${currentUser?.ProfileEntryResponse?.Username}'s Wave`}
             </Text>
 
