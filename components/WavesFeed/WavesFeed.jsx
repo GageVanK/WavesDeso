@@ -1,5 +1,6 @@
 import { getPostsStateless } from 'deso-protocol';
 import { useEffect, useState } from 'react';
+import { Container, Space, Paper, Text, Center } from '@mantine/core';
 import Post from '@/components/Post';
 
 //Waves Tab Feed Component thats displays all current livestreams
@@ -48,6 +49,22 @@ export const WavesFeed = () => {
       {wavesFeed.map((post, index) => (
         <Post post={post} key={index} username={post.ProfileEntryResponse.Username} />
       ))}
+
+      {wavesFeed.length === 0 && (
+        <>
+          <Space h="md" />
+          <Container size="30rem" px={0}>
+            <Paper shadow="xl" p="lg" withBorder>
+              <Center>
+                <Text size="md" fw={400}>
+                  No Waves Right Now.
+                </Text>
+              </Center>
+            </Paper>
+          </Container>
+          <Space h={222} />
+        </>
+      )}
     </>
   );
 };

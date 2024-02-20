@@ -87,6 +87,7 @@ export const SignAndSubmitTx = ({ close }) => {
   const [value, setValue] = useState('');
   const [desoUSD, setDesoUSD] = useState();
 
+  // Get Deso USD Value for Conversion/UI during minting
   const getDesoUSD = async () => {
     try {
       const appState = await getAppState({
@@ -100,24 +101,27 @@ export const SignAndSubmitTx = ({ close }) => {
     }
   };
 
+  // Call on mount
   useEffect(() => {
     getDesoUSD();
   }, []);
 
+  // Convert percentage user input to basis points for minting
   const convertToBasisPoints = (percentage) => {
     // Convert percentage to basis points
     const basisPoints = percentage * 100;
     return basisPoints;
   };
 
+  // Convert DESO to nanos for minting
   const convertDESOToNanos = (deso) => {
-    // Convert DESO to nanos
     const nanoToDeso = 0.000000001;
     const nanos = Math.round(deso / nanoToDeso); // Round to the nearest integer
 
-    return Number(nanos); // Convert to BigInt
+    return Number(nanos);
   };
 
+  // Convert DESO to USD for minting
   const convertDESOToUSD = (deso) => {
     let usdValue = deso * desoUSD;
 
@@ -128,6 +132,7 @@ export const SignAndSubmitTx = ({ close }) => {
     return usdValue.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
   };
 
+  // Search for users to add for royalties
   const SearchUser = async () => {
     const request = {
       UsernamePrefix: value,
@@ -138,11 +143,13 @@ export const SignAndSubmitTx = ({ close }) => {
     setSearchResults(response.ProfilesFound);
   };
 
+  // Handle input change during search
   const handleInputChange = (event) => {
     setValue(event.currentTarget.value);
     SearchUser();
   };
 
+  // Add selected creator
   const handleAddCreator = (publicKey) => {
     // Add selected creator with default percentage
     setExtraCreatorRoyalties((prevState) => ({
@@ -154,6 +161,7 @@ export const SignAndSubmitTx = ({ close }) => {
     setValue('');
   };
 
+  // Handle creator percentage for added creators
   const handleCreatorPercentageChange = (publicKey, updatedPercentage) => {
     setExtraCreatorRoyalties((prevState) => {
       const updatedMap = {
@@ -165,6 +173,7 @@ export const SignAndSubmitTx = ({ close }) => {
     });
   };
 
+  // Delete creator from royalties
   const deleteExtraCreator = (publicKey) => {
     setExtraCreatorRoyalties((prevState) => {
       const newOptions = { ...prevState };
@@ -648,7 +657,7 @@ export const SignAndSubmitTx = ({ close }) => {
           </div>
           <Player
             priority
-            controls={{ autohide: 0, hotkeys: false, defaultVolume: 0.6 }}
+            controls
             showPipButton
             theme={{
               colors: {
@@ -839,7 +848,7 @@ export const SignAndSubmitTx = ({ close }) => {
                 size="lg"
                 variant="default"
                 {...props}
-                loading={imageLoading}
+                loading={uploadInitiated}
               >
                 <RiImageAddFill size="1.2rem" />
               </ActionIcon>

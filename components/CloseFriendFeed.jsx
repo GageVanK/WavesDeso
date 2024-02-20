@@ -1,20 +1,13 @@
 import { getPostsForUser, getUserAssociations } from 'deso-protocol';
 import { useEffect, useState, useContext } from 'react';
 import { DeSoIdentityContext } from 'react-deso-protocol';
-import { Loader, Center, Text } from '@mantine/core';
+import { Loader, Center, Text, Paper, Space, Container } from '@mantine/core';
 import Post from '@/components/Post';
 
 export default function CloseFriendFeed() {
   const { currentUser } = useContext(DeSoIdentityContext);
   const [closeFriendsFeed, setCloseFriendsFeed] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  // Function to shuffle an array (Fisher-Yates algorithm)
-  function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-  }
 
   const getCloseFriendsFeed = async () => {
     try {
@@ -58,13 +51,9 @@ export default function CloseFriendFeed() {
             }).filter(Boolean) // Filter out null values
           : [];
 
-      // Array to store close friends' posts
-      const closeFriendsPosts = [];
-
       // Iterate through matchedAssociations
-
-      // Iterate through matchedAssociations
-      for (const { matchingProfile } of matchedAssociations) {
+      // Fetch posts for all users concurrently
+      const fetchPostsPromises = matchedAssociations.map(async ({ matchingProfile }) => {
         try {
           // Fetch posts for the user
           const postData = await getPostsForUser({
@@ -78,22 +67,33 @@ export default function CloseFriendFeed() {
             return post;
           });
 
-          // Add posts to the closeFriendsPosts array
-          closeFriendsPosts.push(...postsWithProfile);
+          return postsWithProfile;
         } catch (error) {
           console.error('Error fetching posts for user:', matchingProfile?.Username);
           console.error('Error details:', error);
+          return []; // Return empty array in case of error
         }
+      });
+
+      // Wait for all fetch operations to complete
+      try {
+        const closeFriendsPostsArrays = await Promise.all(fetchPostsPromises);
+
+        // Flatten the array of arrays into a single array of posts
+        const closeFriendsPosts = closeFriendsPostsArrays.flat();
+
+        // Sort the posts based on TimestampNanos in descending order (latest to oldest)
+        closeFriendsPosts.sort((postA, postB) => postB.TimestampNanos - postA.TimestampNanos);
+        // Set the state with closeFriendsPosts
+        setCloseFriendsFeed(closeFriendsPosts);
+
+        setIsLoading(false);
+
+        // Now you have all the posts for close friends with updated profiles
+        console.log('Close friends posts:', closeFriendsPosts);
+      } catch (error) {
+        console.error('Error fetching posts for close friends:', error);
       }
-
-      // Randomize the order of posts in closeFriendsPosts
-      shuffleArray(closeFriendsPosts);
-
-      // Set the state with closeFriendsPosts
-      setCloseFriendsFeed(closeFriendsPosts);
-
-    
-      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching close friends feed:', error);
       setIsLoading(false);
@@ -124,9 +124,19 @@ export default function CloseFriendFeed() {
               />
             ))
           ) : (
-            <Text ta="center" size="sm" fw={500}>
-              Add some close friends to see their posts!
-            </Text>
+            <>
+              <Space h="md" />
+              <Container size="30rem" px={0}>
+                <Paper shadow="xl" p="lg" withBorder>
+                  <Center>
+                    <Text size="md" fw={400}>
+                      Add Close Friends to View Your Close Friends Feed.
+                    </Text>
+                  </Center>
+                </Paper>
+              </Container>
+              <Space h={222} />
+            </>
           )}
         </>
       )}

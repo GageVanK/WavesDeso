@@ -14,7 +14,7 @@ export const HotFeed = () => {
       setIsLoading(true);
       const newFeedData = await getPostsStateless({
         NumToFetch: 25,
-        OrderBy: 'newest',
+        MediaRequired: true,
       });
 
       setNewFeed(newFeedData.PostsFound);
@@ -31,7 +31,7 @@ export const HotFeed = () => {
       const morePostsData = await getPostsStateless({
         NumToFetch: 25,
         PostHashHex: lastSeenPostHash,
-        OrderBy: 'newest',
+        MediaRequired: true,
       });
       if (morePostsData.PostsFound.length > 0) {
         setNewFeed((prevPosts) => [...prevPosts, ...morePostsData.PostsFound]);

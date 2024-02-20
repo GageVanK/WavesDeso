@@ -10,10 +10,10 @@ import {
   Center,
   Paper,
   Tooltip,
+  rem,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { TiInfoLargeOutline } from 'react-icons/ti';
-import { FaQuestion } from 'react-icons/fa';
+import { IconQuestionMark } from '@tabler/icons-react';
 
 export function HowTo() {
   const [opened, { open, close }] = useDisclosure(false);
@@ -22,7 +22,7 @@ export function HowTo() {
     <>
       <Tooltip label="How To Stream with OBS">
         <ActionIcon radius="xl" size="xl" variant="default" onClick={open}>
-          <FaQuestion size="1.3rem" />
+          <IconQuestionMark style={{ width: rem(20) }} stroke={1.5} />
         </ActionIcon>
       </Tooltip>
 
@@ -38,10 +38,10 @@ export function HowTo() {
         <Title order={2}>Start Wave</Title>
         <Space h="xs" />
         <Text fw={500} size="md" c="dimmed">
-          1. Set Stream Title
+          1. Install OBS Studio
         </Text>
         <Text fw={500} size="md" c="dimmed">
-          2. Click the &rsquo;Create Wave&rsquo; Button
+          2. Streamlabs is compatible too!
         </Text>
 
         <Space h="md" />

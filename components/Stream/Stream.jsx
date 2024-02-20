@@ -3,47 +3,48 @@ import {
   useCreateStream,
   useUpdateStream,
   Broadcast,
-  useStreamSession,
+  useCreateClip,
+  usePlaybackInfo,
+  MediaControllerCallbackState,
 } from '@livepeer/react';
-import { useMemo, useState, useContext, useEffect, useRef } from 'react';
-import { useDisclosure, useInterval } from '@mantine/hooks';
+import { useDisclosure } from '@mantine/hooks';
+import { setDoc, doc, getDoc } from 'firebase/firestore';
+import { useState, useContext, useEffect, useRef, useCallback, useMemo } from 'react';
+import { updateProfile, submitPost } from 'deso-protocol';
 import {
-  updateProfile,
-  getIsFollowing,
-  updateFollowingStatus,
-  submitPost,
-  getSingleProfile,
-} from 'deso-protocol';
-import {
-  Title,
   Input,
   Paper,
-  Textarea,
+  Stack,
   Group,
   Button,
   Space,
   Center,
   CopyButton,
-  Tabs,
   Tooltip,
-  Card,
-  Badge,
   Loader,
   Text,
-  Progress,
-  Divider,
   Accordion,
-  useMantineTheme,
-  Collapse,
   ActionIcon,
   PasswordInput,
-  rgba,
   HoverCard,
-  Blockquote,
   Container,
+  Modal,
+  TextInput,
+  Switch,
+  rem,
+  Divider,
 } from '@mantine/core';
 import { TwitchEmbed } from 'react-twitch-embed';
-import { IconRocket, IconCheck, IconKey, IconX, IconScreenShare } from '@tabler/icons-react';
+import {
+  IconRocket,
+  IconCheck,
+  IconKey,
+  IconX,
+  IconScreenShare,
+  IconLink,
+  IconPencil,
+  IconQuestionMark,
+} from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { RiYoutubeLine } from 'react-icons/ri';
 import { BsTwitch } from 'react-icons/bs';
@@ -53,62 +54,119 @@ import { AiOutlineLink } from 'react-icons/ai';
 import { VscKey } from 'react-icons/vsc';
 import { BiUserCircle } from 'react-icons/bi';
 import { TiInfoLargeOutline } from 'react-icons/ti';
-import classes from './Stream.module.css';
 import { HowTo } from '@/components/HowTo/HowTo';
-import { BsExclamationCircle } from 'react-icons/bs';
+import { db } from '../../firebase-config';
 
 export const Stream = () => {
   const { currentUser } = useContext(DeSoIdentityContext);
-  const [obsStreamName, setObsStreamName] = useState('');
-  const [browserStreamName, setBrowserStreamName] = useState('');
-  const [isFollowingWaves, setisFollowingWaves] = useState(false);
-  const [disable, { toggle }] = useDisclosure(false);
-  const [progress, setProgress] = useState(0);
-  const [loaded, setLoaded] = useState(false);
-  const [openedMulti, { toggle: toggleMulti }] = useDisclosure(true);
+  const [opened, { open, close }] = useDisclosure(false);
   const embed = useRef();
-  const [didLaunch, setDidLaunch] = useState(false);
-  const theme = useMantineTheme();
-
+  const [streamId, setStreamId] = useState();
+  const [streamPlaybackId, setStreamPlaybackId] = useState();
+  const [streamKey, setStreamKey] = useState();
+  const [streamTitle, setStreamTitle] = useState(
+    currentUser.ProfileEntryResponse?.ExtraData?.WavesStreamTitle || ''
+  );
+  const [streamTitleInput, setStreamTitleInput] = useState('');
+  const [kickStreamKey, setKickStreamKey] = useState('');
+  const [kickStreamURL, setKickStreamURL] = useState('');
+  const [twitchStreamKey, setTwitchStreamKey] = useState('');
+  const [twitchInput, setTwitchInput] = useState('');
+  const [ytStreamKey, setYTStreamKey] = useState('');
+  const [ytStreamURL, setYTStreamURL] = useState('');
+  const onError = useCallback((error) => console.log(error), []);
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [playbackStatus, setPlaybackStatus] = useState(null);
+  const [openClip, setOpenClip] = useState(false);
+  const timerRef = useRef(0);
+  // For Twitch Embed
   const handleReady = (e) => {
     embed.current = e;
   };
 
-  const interval = useInterval(
-    () =>
-      setProgress((current) => {
-        if (current < 100) {
-          return current + 1;
-        }
+  // Create Livepeer Stream + Record by default for VODs
+  const userStream = useCreateStream({
+    name: currentUser.ProfileEntryResponse?.Username,
+    record: true,
+  });
 
-        interval.stop();
-        setLoaded(true);
-        return 0;
-      }),
-    20
-  );
+  // Trigger Create Stream function + Store stream info in firebase
+  const handleCreateStream = async () => {
+    try {
+      await userStream.mutate?.();
 
-  const obs = useCreateStream(obsStreamName ? { name: obsStreamName } : null);
-  const browser = useCreateStream(browserStreamName ? { name: browserStreamName } : null);
+      await setDoc(doc(db, 'streams', currentUser.ProfileEntryResponse?.Username), {
+        streamId: userStream.data?.id,
+        streamKey: userStream.data?.streamKey,
+        playbackId: userStream.data?.playbackId,
+      });
 
-  const isLoading = useMemo(
-    () => obs.status === 'loading' || browser.status === 'loading',
-    [obs.status, browser.status]
-  );
+      fetchStream();
+    } catch (error) {
+      // Handle any errors that occur during the mutation
+      console.error('Error occurred creating and storing your intial stream.', error);
+    }
+  };
 
-  const obsStreamId = obs.data?.id;
-  const browserStreamId = browser.data?.id;
+  // Get Stream Info
+  const fetchStream = async () => {
+    const docRef = doc(db, 'streams', currentUser?.ProfileEntryResponse.Username);
+    const streamData = await getDoc(docRef);
 
-  const [twitchStreamKey, setTwitchStreamKey] = useState('');
-  const [twitchUsername, setTwitchUsername] = useState('');
-  const [twitchInput, setTwitchInput] = useState('');
+    if (streamData.data()) {
+      setStreamKey(streamData.data().streamKey);
+      setStreamPlaybackId(streamData.data().playbackId);
+      setStreamId(streamData.data().streamId);
+    } else {
+      handleCreateStream();
+    }
+  };
+
+  // For 'Launch Wave' Button - Posts stream onchain making it accessible across all deso apps
+  const postStreamToDeso = async () => {
+    try {
+      await submitPost({
+        UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
+        BodyObj: {
+          Body: `${
+            streamTitle || `${currentUser?.ProfileEntryResponse?.Username}'s Wave`
+          }\nTo Subscribe and ensure the best viewing experience, visit: \nhttps://desowaves.vercel.app/wave/${
+            currentUser.ProfileEntryResponse?.Username
+          }`,
+          VideoURLs: [`https://lvpr.tv/?v=${streamPlaybackId}`],
+          ImageURLs: [],
+        },
+        PostExtraData: {
+          WavesStreamTitle: streamTitle,
+        },
+      });
+
+      notifications.show({
+        title: 'Success',
+        icon: <IconCheck size="1.1rem" />,
+        color: 'green',
+        message: 'Your Wave has Launched to DeSo',
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        icon: <IconX size="1.1rem" />,
+        color: 'red',
+        message: `Something Happened: ${error}`,
+      });
+      console.log('something happened: ' + error);
+    }
+  };
+
+  // Twitch Multistream Livepeer Hook
   const {
     mutate: twitchMultistream,
     error,
     isSuccess,
     status: twitchStatus,
   } = useUpdateStream({
-    obsStreamId,
+    streamId,
     multistream: {
       targets: [
         {
@@ -122,8 +180,41 @@ export const Stream = () => {
     },
   });
 
+  // Youtube Multistream Livepeer Hook
+  const { mutate: youtubeMultistream, status: ytmulti } = useUpdateStream({
+    streamId,
+    multistream: {
+      targets: [
+        {
+          profile: 'source',
+          spec: {
+            name: 'Youtube',
+            url: `${ytStreamURL}/${ytStreamKey}`, // Use the RTMP URL entered by the user
+          },
+        },
+      ],
+    },
+  });
+
+  // Kick Multistream Livepeer Hook
+  const { mutate: kickMultistream, error: kickmulti } = useUpdateStream({
+    streamId,
+    multistream: {
+      targets: [
+        {
+          profile: 'source',
+          spec: {
+            name: 'Kick',
+            url: `${kickStreamURL}/app/${kickStreamKey}`, // Use the RTMP URL entered by the user
+          },
+        },
+      ],
+    },
+  });
+
+  // Trigger Livepeer multistream function + Update Profile with Twitch to Embed Twitch to Dashboard for convienvence
   const handleEnableTwitchMultistream = async () => {
-    // If user multistreams to Twitch and hasnt added their Twitch URL we add it to their profile
+    twitchMultistream?.();
     if (!currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL) {
       const updateData = {
         UpdaterPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
@@ -140,113 +231,44 @@ export const Stream = () => {
 
       await updateProfile(updateData);
     }
-
-    // cast stream to twitch
-    twitchMultistream?.();
   };
 
-  const [ytStreamKey, setYTStreamKey] = useState('');
-  const [ytStreamURL, setYTStreamURL] = useState('');
-  const { mutate: youtubeMultistream, status: ytmulti } = useUpdateStream({
-    obsStreamId,
-    multistream: {
-      targets: [
-        {
-          profile: 'source',
-          spec: {
-            name: 'Youtube',
-            url: `${ytStreamURL}/${ytStreamKey}`, // Use the RTMP URL entered by the user
-          },
-        },
-      ],
-    },
-  });
-
+  // Trigger Youtube Multistream function
   const handleEnableYTMultistream = async () => {
     youtubeMultistream?.();
   };
 
-  const [kickStreamKey, setKickStreamKey] = useState('');
-  const [kickStreamURL, setKickStreamURL] = useState('');
-  const { mutate: kickMultistream, error: kickmulti } = useUpdateStream({
-    obsStreamId,
-    multistream: {
-      targets: [
-        {
-          profile: 'source',
-          spec: {
-            name: 'Kick',
-            url: `${kickStreamURL}/app/${kickStreamKey}`, // Use the RTMP URL entered by the user
-          },
-        },
-      ],
-    },
-  });
-
+  // Trigger Kick Multistream function
   const handleEnableKickMultistream = async () => {
     kickMultistream?.();
   };
 
-  // Checking to see if Waves_Streams Account Follows the Streamer
-  useEffect(() => {
-    const isFollowingPublicKey = async () => {
-      try {
-        const result = await getIsFollowing({
-          PublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
-          IsFollowingPublicKeyBase58Check:
-            'BC1YLfjx3jKZeoShqr2r3QttepoYmvJGEs7vbYx1WYoNmNW9FY5VUu6',
-        });
-
-        setisFollowingWaves(result.IsFollowing);
-      } catch (error) {
-        console.log('Something went wrong:', error);
-      }
-    };
-
-    isFollowingPublicKey();
-  }, [currentUser]);
-
-  const postStreamToDeso = async () => {
+  // Update Stream Title by adding to users profile
+  const updateStreamTitle = async () => {
     try {
-      !interval.active && interval.start();
-      // Streamer follows the Waves_Streams Account
-      // Waves_Streams follows Streamers back
-      // Will be using the Waves_Streams Following Feed to display the livestreams on the Waves Feed
-      // Lazy way of moderating the Waves Feed
-      if (isFollowingWaves === false) {
-        await updateFollowingStatus({
-          MinFeeRateNanosPerKB: 1000,
-          IsUnfollow: false,
-          FollowedPublicKeyBase58Check: 'BC1YLfjx3jKZeoShqr2r3QttepoYmvJGEs7vbYx1WYoNmNW9FY5VUu6',
-          FollowerPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        });
-      }
-
-      // Posts stream onchain making it accessible across all deso apps
-      await submitPost({
-        UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        BodyObj: {
-          Body: `${
-            obsStreamName || browserStreamName
-          }\nTo Subscribe and ensure the best viewing experience, visit: \nhttps://desowaves.vercel.app/wave/${
-            currentUser.ProfileEntryResponse.Username
-          }`,
-          VideoURLs: [`https://lvpr.tv/?v=${obs.data?.playbackId || browser.data?.playbackId}`],
-          ImageURLs: [],
+      setStreamTitle(streamTitleInput);
+      const updateData = {
+        UpdaterPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        ProfilePublicKeyBase58Check: '',
+        NewUsername: '',
+        MinFeeRateNanosPerKB: 1000,
+        NewCreatorBasisPoints: 100,
+        NewDescription: '',
+        NewStakeMultipleBasisPoints: 12500,
+        ExtraData: {
+          WavesStreamTitle: streamTitle,
         },
-        PostExtraData: {
-          WavesStreamTitle: obsStreamName || browserStreamName,
-        },
-      });
+      };
+      await updateProfile(updateData);
 
       notifications.show({
         title: 'Success',
         icon: <IconCheck size="1.1rem" />,
-        color: 'green',
-        message: 'Your Wave has Launched to DeSo',
+        color: 'blue',
+        message: 'Title Updated',
       });
 
-      setDidLaunch(true);
+      close();
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -255,620 +277,491 @@ export const Stream = () => {
         message: `Something Happened: ${error}`,
       });
       console.log('something happened: ' + error);
-      setDidLaunch(false);
-      setLoaded(false);
-      setProgress(0);
     }
   };
 
+  /*
+  const playerProps = useMemo(
+    () =>
+      streamId
+        ? {
+            src: `${streamPlaybackId}/${streamId}/output.m3u8`,
+          }
+        : {
+            playbackId: streamPlaybackId,
+          },
+    [streamId, streamPlaybackId]
+  );
+
+  const playbackStatusSelector = useCallback(
+    (MediaControllerCallbackState) => ({
+      progress: Number(state.progress.toFixed(1)),
+      offset: Number(state.playbackOffsetMs?.toFixed(1) ?? 0),
+    }),
+    []
+  );
+
+  const onPlaybackStatusUpdate = useCallback(
+    ({ progress, offset }) => setPlaybackStatus(state),
+    []
+  );
+
+  const {
+    data: clipAsset,
+    mutate,
+    isLoading,
+  } = useCreateClip({
+    sessionId: streamId,
+    playbackId: streamPlaybackId,
+    startTime: startTime?.unix ?? 0,
+    endTime: endTime?.unix ?? 0,
+  });
+
+  useEffect(() => {
+    return () => clearTimeout(timerRef.current);
+  }, []);
+
+  const { data: clipPlaybackInfo } = usePlaybackInfo({
+    playbackId: clipAsset?.playbackId ?? undefined,
+    refetchInterval: (info) => (!info?.meta?.source?.some((s) => s.hrn === 'MP4') ? 2000 : false),
+  });
+
+  const mp4DownloadUrl = useMemo(
+    () =>
+      clipPlaybackInfo?.meta?.source
+        ?.sort((a, b) => {
+          const sizeA = a?.size ?? 0;
+          const sizeB = b?.size ?? 0;
+
+          return sizeB - sizeA;
+        })
+        ?.find((s) => s.hrn === 'MP4')?.url ?? null,
+    [clipPlaybackInfo]
+  );
+
+  useEffect(() => {
+    if (isLoading) {
+      setOpenClip(false);
+      window?.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => {
+        setOpenClip(true);
+      }, 100);
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (mp4DownloadUrl) {
+      setOpenClip(false);
+      window?.clearTimeout(timerRef.current);
+      timerRef.current = window.setTimeout(() => {
+        setOpenClip(true);
+      }, 100);
+    }
+  }, [mp4DownloadUrl]);
+
+  useEffect(() => {
+    return () => clearTimeout(timerRef.current);
+  }, []);
+
+  */
+
+  // Fetch Stream Info on mount or when user changes
+  useEffect(() => {
+    if (currentUser.ProfileEntryResponse.Username) {
+      fetchStream();
+    }
+  }, [currentUser]);
+
   return (
-    <Paper shadow="sm" p="lg" withBorder>
-      <Group justify="space-between">
-        <HoverCard width={280} closeDelay={700} shadow="md">
-          <HoverCard.Target>
-            <ActionIcon radius="xl" size="sm" variant="outline">
-              <TiInfoLargeOutline />
-            </ActionIcon>
-          </HoverCard.Target>
-          <HoverCard.Dropdown>
-            <Text fw={500} size="xs">
-              Be sure to install OBS Studio or Stream via your Webcam (Mobile Friendly)
-            </Text>
-          </HoverCard.Dropdown>
-        </HoverCard>
-
-        <CopyButton
-          value={`https://desowaves.vercel.app/wave/${currentUser.ProfileEntryResponse.Username}`}
-          timeout={2000}
-        >
-          {({ copied, copy }) => (
-            <>
-              <Tooltip label={copied ? 'Wave Copied' : 'Share your Wave'}>
-                <Button
-                  radius="sm"
-                  size="compact-md"
-                  color={copied ? 'teal' : 'blue'}
-                  onClick={copy}
-                >
-                  {copied ? (
-                    <>
-                      <IconCheck size={16} />
-                    </>
-                  ) : (
-                    <>
-                      <IconScreenShare size={16} />
-                    </>
-                  )}
-                </Button>
-              </Tooltip>
-            </>
-          )}
-        </CopyButton>
-      </Group>
-
-      <Space h="md" />
-
-      <Tabs variant="pills" radius="md" defaultValue="first">
-        <Tabs.List grow justify="center">
-          <Tabs.Tab value="first" disabled={obsStreamName || browserStreamName}>
-            Stream via OBS/StreamLabs
-          </Tabs.Tab>
-          <Tabs.Tab value="second" disabled={obsStreamName || browserStreamName}>
-            Stream via Webcam (Mobile Friendly)
-          </Tabs.Tab>
-        </Tabs.List>
+    <>
+      <Modal opened={opened} onClose={close} centered>
+        <TextInput
+          variant="filled"
+          radius="xl"
+          label="Change Title"
+          placeholder={streamTitle || `${currentUser?.ProfileEntryResponse?.Username}'s Wave`}
+          value={streamTitleInput}
+          onChange={(event) => setStreamTitleInput(event.currentTarget.value)}
+          rightSection={
+            streamTitleInput && (
+              <ActionIcon
+                onClick={() => {
+                  setStreamTitleInput('');
+                }}
+                size={32}
+                radius="xl"
+                variant="subtle"
+              >
+                <IconX size="1.1rem" />
+              </ActionIcon>
+            )
+          }
+          rightSectionWidth={42}
+        />
 
         <Space h="md" />
 
-        <Tabs.Panel value="first">
-          <Center>
-            <Text fz="lg" fw={777} c="dimmed" truncate="end">
-              Start Streaming
+        <Group justify="right">
+          <Button size="xs" onClick={updateStreamTitle}>
+            Update
+          </Button>
+        </Group>
+      </Modal>
+
+      {streamId && (
+        <>
+          <Group>
+            <Text fs="italic" ml={77} fw={700} size="xl">
+              {streamTitle ||
+                currentUser?.ProfileEntryResponse?.ExtraData?.WavesStreamTitle ||
+                `${currentUser?.ProfileEntryResponse?.Username}'s Wave`}
             </Text>
-          </Center>
-          <Space h="md" />
-          <Textarea
-            placeholder="Enter Stream Title"
-            variant="filled"
-            radius="md"
-            disabled={disable}
-            onChange={(e) => setObsStreamName(e.target.value)}
-          />
-          <Space h="xl" />
 
-          {obs.status === 'success' && (
-            <>
-              {obsStreamName ? (
-                <>
-                  <Container>
-                    <Card shadow="sm" p="lg" radius="md" withBorder>
-                      <Group justify="right">
-                        <HowTo />
-                      </Group>
-                      <Blockquote
-                        color="blue"
-                        radius="xl"
-                        iconSize={30}
-                        icon={<BsExclamationCircle size="1.2rem" />}
-                        mt="xl"
+            <Tooltip label="Edit Title">
+              <ActionIcon size="sm" variant="subtle" onClick={open}>
+                <IconPencil style={{ width: rem(18) }} stroke={1.5} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
+
+          <Space h="xs" />
+
+          <Group>
+            <ActionIcon.Group orientation="vertical">
+              <HoverCard width={280} closeDelay={700} shadow="md">
+                <HoverCard.Target>
+                  <ActionIcon radius="xl" size="xl" variant="outline">
+                    <TiInfoLargeOutline />
+                  </ActionIcon>
+                </HoverCard.Target>
+                <HoverCard.Dropdown>
+                  <Group>
+                    <IconRocket style={{ width: rem(15) }} stroke={1.5} />
+                    <Text size="xs">Promote your Wave by posting to DeSo.</Text>
+                  </Group>
+
+                  <Space h="xs" />
+                  <Divider />
+                  <Space h="xs" />
+
+                  <Group>
+                    <IconPencil style={{ width: rem(15) }} stroke={1.5} />
+                    <Text size="xs">Edit the title of your Wave.</Text>
+                  </Group>
+
+                  <Space h="xs" />
+                  <Divider />
+                  <Space h="xs" />
+
+                  <Group>
+                    <IconScreenShare style={{ width: rem(15) }} stroke={1.5} />
+                    <Text size="xs">Share the link to your Wave.</Text>
+                  </Group>
+
+                  <Space h="xs" />
+                  <Divider />
+                  <Space h="xs" />
+
+                  <Group>
+                    <IconKey style={{ width: rem(15) }} stroke={1.5} />
+                    <Text size="xs">Paste in your Stream Key/URL to go Live.</Text>
+                  </Group>
+
+                  <Space h="xs" />
+                  <Divider />
+                  <Space h="xs" />
+
+                  <Group>
+                    <IconQuestionMark style={{ width: rem(15) }} stroke={1.5} />
+                    <Text size="xs">Any more questions? Check our tutorial.</Text>
+                  </Group>
+                </HoverCard.Dropdown>
+              </HoverCard>
+
+              <Tooltip label="Promote Wave Onchain">
+                <ActionIcon
+                  onClick={postStreamToDeso}
+                  variant="default"
+                  size="xl"
+                  aria-label="Launch"
+                >
+                  <IconRocket style={{ width: rem(20) }} stroke={1.5} />
+                </ActionIcon>
+              </Tooltip>
+
+              <Tooltip label="Edit Title">
+                <ActionIcon size="xl" variant="default" onClick={open}>
+                  <IconPencil style={{ width: rem(20) }} stroke={1.5} />
+                </ActionIcon>
+              </Tooltip>
+
+              <CopyButton
+                value={`https://desowaves.vercel.app/wave/${currentUser.ProfileEntryResponse.Username}`}
+                timeout={2000}
+              >
+                {({ copied, copy }) => (
+                  <>
+                    <Tooltip label={copied ? 'Copied' : 'Share Wave Link'}>
+                      <ActionIcon
+                        variant="default"
+                        size="xl"
+                        aria-label="Share Button"
+                        onClick={copy}
                       >
-                        <Text fw={400} fs="italic">
-                          1. Select Livepeer Studio in your OBS Stream Settings and paste in your
-                          1-time use Stream Key.
-                        </Text>
-                        <Space h="xs" />
-                        <Text fw={400} fs="italic">
-                          2. Once your stream is Active, Click 'Launch Wave' to bring your broadcast
-                          to Waves & all DeSo Apps!
-                        </Text>
-                        <Space h="xs" />
-                        <Text fw={400} fs="italic">
-                          - If you leave the dashboard mid-stream, your viewers can still watch the
-                          stream, but you won't have access to the stream key or be able to start a
-                          multistream until you create a new one.
-                        </Text>
-                      </Blockquote>
+                        {copied ? (
+                          <>
+                            <IconCheck style={{ width: rem(20) }} stroke={1.5} />
+                          </>
+                        ) : (
+                          <>
+                            <IconScreenShare style={{ width: rem(20) }} stroke={1.5} />
+                          </>
+                        )}
+                      </ActionIcon>
+                    </Tooltip>
+                  </>
+                )}
+              </CopyButton>
 
-                      <Space h="md" />
-                      <Group justify="center">
-                        <Title order={1}>
-                          <Text radius="sm" fw={700} fz="lg">
-                            {obsStreamName}
-                          </Text>{' '}
-                        </Title>
-                      </Group>
+              <CopyButton value={streamKey} timeout={2000}>
+                {({ copied, copy }) => (
+                  <>
+                    <Tooltip label={copied ? 'Copied' : 'Stream Key'}>
+                      <ActionIcon
+                        variant="default"
+                        size="xl"
+                        aria-label="StreamKey"
+                        color={copied ? 'teal' : 'blue'}
+                        onClick={copy}
+                      >
+                        {copied ? (
+                          <>
+                            <IconCheck style={{ width: rem(20) }} stroke={1.5} />
+                          </>
+                        ) : (
+                          <>
+                            <IconKey style={{ width: rem(20) }} stroke={1.5} />
+                          </>
+                        )}
+                      </ActionIcon>
+                    </Tooltip>
+                  </>
+                )}
+              </CopyButton>
 
-                      <Divider my="sm" />
+              <CopyButton value="rtmp://rtmp.livepeer.com/live" timeout={2000}>
+                {({ copied, copy }) => (
+                  <>
+                    <Tooltip label={copied ? 'Copied' : 'Stream URL'}>
+                      <ActionIcon variant="default" size="xl" aria-label="StreamURL" onClick={copy}>
+                        {copied ? (
+                          <>
+                            <IconCheck style={{ width: rem(20) }} stroke={1.5} />
+                          </>
+                        ) : (
+                          <>
+                            <IconLink style={{ width: rem(20) }} stroke={1.5} />
+                          </>
+                        )}
+                      </ActionIcon>
+                    </Tooltip>
+                  </>
+                )}
+              </CopyButton>
 
-                      <Space h="md" />
-                      <Group justify="center">
-                        <CopyButton value={obs.data?.streamKey} timeout={2000}>
-                          {({ copied, copy }) => (
-                            <Button fullWidth color={copied ? 'teal' : 'blue'} onClick={copy}>
-                              {copied ? (
-                                <>
-                                  <Center>
-                                    <h4>Stream Key</h4>
-                                    <Space w="xs" />
-                                    <IconCheck size={16} />
-                                  </Center>
-                                </>
-                              ) : (
-                                <>
-                                  <Center>
-                                    <h4>Stream Key</h4>
-                                    <Space w="xs" />
-                                    <IconKey size={16} />
-                                  </Center>
-                                </>
-                              )}
-                            </Button>
-                          )}
-                        </CopyButton>
+              <HowTo />
+            </ActionIcon.Group>
 
-                        <Button
-                          rightSection={<IconRocket size="1rem" />}
-                          fullWidth
-                          className={classes.button}
-                          onClick={() => {
-                            postStreamToDeso();
-                          }}
-                          color={loaded ? 'teal' : theme.primaryColor}
-                          disabled={didLaunch}
-                        >
-                          <div className={classes.label}>
-                            {progress !== 0
-                              ? 'Launching Waves'
-                              : loaded
-                              ? 'Wave Launched'
-                              : 'Launch Wave'}
-                          </div>
-                          {progress !== 0 && (
-                            <Progress
-                              value={progress}
-                              className={classes.progress}
-                              color={rgba(theme.colors.blue[0], 0.35)}
-                              radius="sm"
-                            />
-                          )}
-                        </Button>
-                      </Group>
-                      <Space h="md" />
-                    </Card>
-                  </Container>
-                  <Space h="md" />
+            <Player
+              priority
+              controls
+              showPipButton
+              theme={{
+                colors: {
+                  loading: '#3cdfff',
+                },
+              }}
+              title={
+                streamTitle ||
+                currentUser?.ProfileEntryResponse?.ExtraData?.WavesStreamTitle ||
+                `${currentUser?.ProfileEntryResponse?.Username}'s Wave`
+              }
+              playbackId={streamPlaybackId}
+              lowLatency="force"
+            />
+          </Group>
 
-                  <Center>
-                    <Group style={{ width: '500px' }}>
-                      <Tooltip label="Stream to Multiple Platforms">
-                        <Button
-                          fullWidth
-                          variant="gradient"
-                          gradient={{ from: 'indigo', to: 'cyan' }}
-                          radius="lg"
-                          size="md"
-                          onClick={toggleMulti}
-                        >
-                          {' '}
-                          <Text fw={700} fz="lg">
-                            Multistream
-                          </Text>
-                        </Button>
-                      </Tooltip>
+          <Space h="md" />
+
+          <Container w="100%">
+            <Stack>
+              <Group>
+                <Text fw={666} fz="lg">
+                  Multistream
+                </Text>
+
+                <HoverCard width={280} closeDelay={700} shadow="md">
+                  <HoverCard.Target>
+                    <ActionIcon radius="xl" size="sm" variant="outline">
+                      <TiInfoLargeOutline />
+                    </ActionIcon>
+                  </HoverCard.Target>
+                  <HoverCard.Dropdown>
+                    <Text fw={500} size="xs">
+                      Broadcast your Stream to multiple platforms with Multistreaming!
+                    </Text>
+                    <Space h="xs" />
+                    <Text fw={500} size="xs">
+                      Just paste in the necessary information and click the Launch button.
+                    </Text>
+                    <Space h="xs" />
+                    <Text fw={500} size="xs">
+                      It is recommended to have separate tabs open of your Multistreams to ensure
+                      everything is working!
+                    </Text>
+                    <Space h="xs" />
+                    <Text fw={500} size="xs">
+                      Be sure to set the Stream Title, Category, etc in the apps you are
+                      multistreaming to.
+                    </Text>
+                  </HoverCard.Dropdown>
+                </HoverCard>
+              </Group>
+
+              <Accordion variant="separated" radius="md">
+                <Accordion.Item value="Twitch">
+                  <Accordion.Control
+                    icon={<BsTwitch size={'1.5rem'} color={'rgba(145, 70, 255)'} />}
+                  >
+                    <Text c="dimmed" fw={500}>
+                      Twitch
+                    </Text>
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    {!currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL && (
+                      <Input
+                        icon={<BiUserCircle />}
+                        placeholder="Enter Your Twitch Username"
+                        radius="md"
+                        value={twitchInput}
+                        onChange={(e) => setTwitchInput(e.target.value)}
+                      />
+                    )}
+
+                    <Space h="md" />
+                    <PasswordInput
+                      icon={<VscKey />}
+                      placeholder="Enter Your Twitch Stream Key"
+                      radius="md"
+                      value={twitchStreamKey}
+                      onChange={(e) => setTwitchStreamKey(e.target.value)}
+                    />
+                    <Space h="md" />
+                    <Group justify="right">
+                      <Button
+                        rightSection={<IconRocket size="1rem" />}
+                        variant="light"
+                        size="xs"
+                        onClick={handleEnableTwitchMultistream}
+                        disabled={
+                          !twitchStreamKey ||
+                          (!twitchInput && !currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL)
+                        }
+                      >
+                        Launch
+                      </Button>
+                      {error && <div>{error.message}</div>}
                     </Group>
-                  </Center>
 
-                  <Collapse in={openedMulti}>
-                    <Divider my="sm" />
-                    <Paper shadow="md" radius="md" p="lg" withBorder>
-                      <HoverCard width={280} closeDelay={700} shadow="md">
-                        <HoverCard.Target>
-                          <ActionIcon radius="xl" size="sm" variant="outline">
-                            <TiInfoLargeOutline />
-                          </ActionIcon>
-                        </HoverCard.Target>
-                        <HoverCard.Dropdown>
-                          <Text fw={500} size="xs">
-                            Broadcast your Stream to multiple platforms with Multistreaming!
-                          </Text>
-                          <Space h="xs" />
-                          <Text fw={500} size="xs">
-                            Just paste in the necessary information and click the Launch button.
-                          </Text>
-                          <Space h="xs" />
-                          <Text fw={500} size="xs">
-                            It is recommended to have separate tabs open of your Multistreams to
-                            ensure everything is working!
-                          </Text>
-                          <Space h="xs" />
-                          <Text fw={500} size="xs">
-                            Be sure to set the Stream Title, Category, etc in the apps you are
-                            multistreaming to.
-                          </Text>
-                        </HoverCard.Dropdown>
-                      </HoverCard>
-                      <Space h="xs" />
-                      <Accordion variant="separated" radius="md" defaultValue="Twitch">
-                        <Accordion.Item value="Twitch">
-                          <Accordion.Control
-                            icon={<BsTwitch size={'1.5rem'} color={'rgba(145, 70, 255)'} />}
-                          >
-                            <Text c="dimmed" fw={500}>
-                              Twitch
-                            </Text>
-                          </Accordion.Control>
-                          <Accordion.Panel>
-                            {!currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL && (
-                              <Input
-                                icon={<BiUserCircle />}
-                                placeholder="Enter Your Twitch Username"
-                                radius="md"
-                                value={twitchInput}
-                                onChange={(e) => setTwitchInput(e.target.value)}
-                              />
-                            )}
+                    {twitchInput && !currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL && (
+                      <>
+                        <Space h="md" />
+                        <Group grow>
+                          <TwitchEmbed channel={twitchInput} muted onReady={handleReady} />
+                        </Group>
+                      </>
+                    )}
+                  </Accordion.Panel>
+                </Accordion.Item>
 
-                            <Space h="md" />
-                            <PasswordInput
-                              icon={<VscKey />}
-                              placeholder="Enter Your Twitch Stream Key"
-                              radius="md"
-                              value={twitchStreamKey}
-                              onChange={(e) => setTwitchStreamKey(e.target.value)}
-                            />
-                            <Space h="md" />
-                            <Group justify="right">
-                              <Button
-                                rightSectioncon={<IconRocket size="1rem" />}
-                                variant="light"
-                                size="xs"
-                                onClick={handleEnableTwitchMultistream}
-                                disabled={
-                                  !twitchStreamKey ||
-                                  (!twitchInput &&
-                                    !currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL)
-                                }
-                              >
-                                Launch
-                              </Button>
-                              {error && <div>{error.message}</div>}
-                            </Group>
-
-                            {twitchInput &&
-                              !currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL && (
-                                <>
-                                  <Space h="md" />
-                                  <Group grow>
-                                    <TwitchEmbed
-                                      channel={twitchInput}
-                                      muted
-                                      onReady={handleReady}
-                                    />
-                                  </Group>
-                                </>
-                              )}
-                          </Accordion.Panel>
-                        </Accordion.Item>
-
-                        <Accordion.Item value="Youtube">
-                          <Accordion.Control icon={<RiYoutubeLine size={'1.5rem'} color="red" />}>
-                            <Text c="dimmed" fw={500}>
-                              Youtube
-                            </Text>
-                          </Accordion.Control>
-                          <Accordion.Panel>
-                            <Input
-                              icon={<BiUserCircle />}
-                              placeholder="Enter Your Youtube Stream URL"
-                              radius="md"
-                              value={ytStreamURL}
-                              onChange={(e) => setYTStreamURL(e.target.value)}
-                            />
-                            <Space h="md" />
-                            <PasswordInput
-                              icon={<AiOutlineLink />}
-                              placeholder="Enter Your Youtube Stream Key"
-                              radius="md"
-                              value={ytStreamKey}
-                              onChange={(e) => setYTStreamKey(e.target.value)}
-                            />
-                            <Space h="md" />
-                            <Group justify="right">
-                              <Button
-                                rightSection={<IconRocket size="1rem" />}
-                                variant="light"
-                                size="xs"
-                                onClick={handleEnableYTMultistream}
-                              >
-                                Launch
-                              </Button>
-                              {ytmulti && <div>{ytmulti.message}</div>}
-                            </Group>
-                          </Accordion.Panel>
-                        </Accordion.Item>
-
-                        <Accordion.Item value="Kick">
-                          <Accordion.Control icon={<RiKickLine size={'1.5rem'} color="green" />}>
-                            {' '}
-                            <Text c="dimmed" fw={500}>
-                              Kick
-                            </Text>
-                          </Accordion.Control>
-                          <Accordion.Panel>
-                            <Input
-                              icon={<AiOutlineLink />}
-                              placeholder="Enter Kick Stream URL"
-                              radius="md"
-                              value={kickStreamURL}
-                              onChange={(e) => setKickStreamURL(e.target.value)}
-                            />
-                            <Space h="md" />
-                            <PasswordInput
-                              icon={<VscKey />}
-                              placeholder="Enter Kick Stream Key"
-                              radius="md"
-                              value={kickStreamKey}
-                              onChange={(e) => setKickStreamKey(e.target.value)}
-                            />{' '}
-                            <Space h="md" />
-                            <Group justify="right">
-                              <Button
-                                onClick={handleEnableKickMultistream}
-                                rightSectioncon={<IconRocket size="1rem" />}
-                                variant="light"
-                                size="xs"
-                              >
-                                Launch
-                              </Button>
-                            </Group>
-                          </Accordion.Panel>
-                        </Accordion.Item>
-                      </Accordion>
-                    </Paper>
-                  </Collapse>
-
-                  <Space h="md" />
-                  {!didLaunch ? (
-                    <>
-                      <Blockquote
-                        color="red"
-                        radius="xl"
-                        iconSize={30}
-                        icon={<BsExclamationCircle size="1.2rem" />}
-                        mt="xl"
-                      >
-                        <Text fw={400} fs="italic">
-                          This stream playback is not public. Please click Launch Wave to make it
-                          accessible across all DeSo Apps.
-                        </Text>
-                      </Blockquote>
-                      <Space h="md" />
-                    </>
-                  ) : (
-                    <>
-                      <Blockquote
-                        color="blue"
-                        radius="xl"
-                        iconSize={30}
-                        icon={<BsExclamationCircle size="1.2rem" />}
-                        mt="xl"
-                      >
-                        <Text fw={400} fs="italic">
-                          Yay! Your wave is available on Waves and all DeSo Apps!
-                        </Text>
-                      </Blockquote>
-                      <Space h="md" />
-                    </>
-                  )}
-                  <Group justify="center">
-                    <Player
-                      priority
-                      controls={{ autohide: 0, hotkeys: false, defaultVolume: 0.6 }}
-                      showPipButton
-                      theme={{
-                        colors: {
-                          loading: '#3cdfff',
-                        },
-                      }}
-                      title={obs.data?.name}
-                      playbackId={obs.data?.playbackId}
-                      muted
+                <Accordion.Item value="Youtube">
+                  <Accordion.Control icon={<RiYoutubeLine size={'1.5rem'} color="red" />}>
+                    <Text c="dimmed" fw={500}>
+                      Youtube
+                    </Text>
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    <Input
+                      icon={<BiUserCircle />}
+                      placeholder="Enter Your Youtube Stream URL"
+                      radius="md"
+                      value={ytStreamURL}
+                      onChange={(e) => setYTStreamURL(e.target.value)}
                     />
-                  </Group>
-                </>
-              ) : (
-                <Group justify="center">
-                  <p>Wave suspended. Refresh to create a new Wave.</p>
-                </Group>
-              )}
-            </>
-          )}
-          {obs.status === 'loading' && (
-            <Group justify="center">
-              <Loader size="sm" />
-            </Group>
-          )}
-          {obs.status === 'error' && (
-            <Group justify="center">
-              <p>Error occurred while creating your wave.</p>
-            </Group>
-          )}
-          <Space h="md" />
-          {!obs.data && (
-            <Group justify="center">
-              <Button
-                radius="xl"
-                onClick={() => {
-                  toggle();
-                  obs.mutate?.(); // Create the stream and store the result
-                }}
-                disabled={isLoading || !obs.mutate}
-              >
-                Create Wave
-              </Button>
-            </Group>
-          )}
-          <Space h="md" />
-        </Tabs.Panel>
-
-        <Tabs.Panel value="second">
-          <Center>
-            <Text fz="lg" fw={777} c="dimmed" truncate="end">
-              Start Streaming
-            </Text>
-          </Center>
-          <Space h="md" />
-          <Textarea
-            placeholder="Enter Stream Title"
-            variant="filled"
-            radius="md"
-            disabled={disable}
-            onChange={(e) => setBrowserStreamName(e.target.value)}
-          />
-          <Space h="xl" />
-
-          {browser.status === 'success' && (
-            <>
-              {browserStreamName ? (
-                <>
-                  <Container>
-                    <Card shadow="sm" p="lg" radius="md" withBorder>
-                      <Blockquote
-                        color="blue"
-                        radius="xl"
-                        iconSize={30}
-                        icon={<BsExclamationCircle size="1.2rem" />}
-                        mt="xl"
-                      >
-                        <Text fw={400} fs="italic">
-                          1. Allow Access to your Webcam & Microphone.
-                        </Text>
-                        <Space h="xs" />
-                        <Text fw={400} fs="italic">
-                          2. Once your stream is Active, Click 'Launch Wave' to bring your broadcast
-                          to Waves & all DeSo Apps!
-                        </Text>
-                      </Blockquote>
-                      <Space h="md" />
-                      <Group justify="center">
-                        <Title order={1}>
-                          <Text radius="sm" fw={700} fz="lg">
-                            {browserStreamName}
-                          </Text>{' '}
-                        </Title>
-                      </Group>
-
-                      <Divider my="sm" />
-
-                      <Space h="md" />
-                      <Group justify="center">
-                        <Button
-                          rightSection={<IconRocket size="1rem" />}
-                          fullWidth
-                          className={classes.button}
-                          onClick={() => {
-                            postStreamToDeso();
-                          }}
-                          color={loaded ? 'teal' : theme.primaryColor}
-                          disabled={didLaunch}
-                        >
-                          <div className={classes.label}>
-                            {progress !== 0
-                              ? 'Launching Waves'
-                              : loaded
-                              ? 'Wave Launched'
-                              : 'Launch Wave'}
-                          </div>
-                          {progress !== 0 && (
-                            <Progress
-                              value={progress}
-                              className={classes.progress}
-                              color={rgba(theme.colors.blue[0], 0.35)}
-                              radius="sm"
-                            />
-                          )}
-                        </Button>
-                      </Group>
-                      <Space h="md" />
-                    </Card>
-                  </Container>
-
-                  <Space h="md" />
-                  {!didLaunch ? (
-                    <>
-                      <Blockquote
-                        color="red"
-                        radius="xl"
-                        iconSize={30}
-                        icon={<BsExclamationCircle size="1.2rem" />}
-                        mt="xl"
-                      >
-                        <Text fw={400} fs="italic">
-                          This stream playback is not public. Please click Launch Wave to make it
-                          accessible across all DeSo Apps.
-                        </Text>
-                      </Blockquote>
-                      <Space h="md" />
-                    </>
-                  ) : (
-                    <>
-                      <Blockquote
-                        color="blue"
-                        radius="xl"
-                        iconSize={30}
-                        icon={<BsExclamationCircle size="1.2rem" />}
-                        mt="xl"
-                      >
-                        <Text fw={400} fs="italic">
-                          Yay! Your wave is available on Waves and all DeSo Apps!
-                        </Text>
-                      </Blockquote>
-                      <Space h="md" />
-                    </>
-                  )}
-                  <Group justify="center">
-                    <Broadcast
-                      title={browser.data?.name}
-                      playbackId={browser.data?.playbackId}
-                      muted
+                    <Space h="md" />
+                    <PasswordInput
+                      icon={<AiOutlineLink />}
+                      placeholder="Enter Your Youtube Stream Key"
+                      radius="md"
+                      value={ytStreamKey}
+                      onChange={(e) => setYTStreamKey(e.target.value)}
                     />
-                  </Group>
-                </>
-              ) : (
-                <Group justify="center">
-                  <p>Wave suspended. Refresh to create a new Wave.</p>
-                </Group>
-              )}
-            </>
-          )}
-          {browser.status === 'loading' && (
-            <Group justify="center">
-              <Loader size="sm" />
-            </Group>
-          )}
-          {browser.status === 'error' && (
-            <Group justify="center">
-              <p>Error occurred while creating your wave.</p>
-            </Group>
-          )}
-          <Space h="md" />
-          {!browser.data && (
-            <Group justify="center">
-              <Button
-                radius="xl"
-                onClick={() => {
-                  toggle();
-                  browser.mutate?.(); // Create the stream and store the result
-                }}
-                disabled={isLoading || !browser.mutate}
-              >
-                Create Wave
-              </Button>
-            </Group>
-          )}
-          <Space h="md" />
-        </Tabs.Panel>
-      </Tabs>
-    </Paper>
+                    <Space h="md" />
+                    <Group justify="right">
+                      <Button
+                        rightSection={<IconRocket size="1rem" />}
+                        variant="light"
+                        size="xs"
+                        onClick={handleEnableYTMultistream}
+                      >
+                        Launch
+                      </Button>
+                      {ytmulti && <div>{ytmulti.message}</div>}
+                    </Group>
+                  </Accordion.Panel>
+                </Accordion.Item>
+
+                <Accordion.Item value="Kick">
+                  <Accordion.Control icon={<RiKickLine size={'1.5rem'} color="green" />}>
+                    {' '}
+                    <Text c="dimmed" fw={500}>
+                      Kick
+                    </Text>
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    <Input
+                      icon={<AiOutlineLink />}
+                      placeholder="Enter Kick Stream URL"
+                      radius="md"
+                      value={kickStreamURL}
+                      onChange={(e) => setKickStreamURL(e.target.value)}
+                    />
+                    <Space h="md" />
+                    <PasswordInput
+                      icon={<VscKey />}
+                      placeholder="Enter Kick Stream Key"
+                      radius="md"
+                      value={kickStreamKey}
+                      onChange={(e) => setKickStreamKey(e.target.value)}
+                    />{' '}
+                    <Space h="md" />
+                    <Group justify="right">
+                      <Button
+                        onClick={handleEnableKickMultistream}
+                        rightSection={<IconRocket size="1rem" />}
+                        variant="light"
+                        size="xs"
+                      >
+                        Launch
+                      </Button>
+                    </Group>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
+            </Stack>
+          </Container>
+        </>
+      )}
+    </>
   );
 };

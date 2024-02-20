@@ -145,7 +145,7 @@ export const FollowerFeed = () => {
                           <Paper shadow="xl" p="lg" withBorder>
                             <Center>
                               <Text size="md" fw={400}>
-                                Follow some creators to view their posts here!
+                                Follow Some Creators To View Your Following Feed.
                               </Text>
                             </Center>
                           </Paper>

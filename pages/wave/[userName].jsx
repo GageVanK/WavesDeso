@@ -1,7 +1,8 @@
 import { useEffect, useState, useContext, useRef } from 'react';
 import Link from 'next/link';
 import { Player } from '@livepeer/react';
-import { IconScreenShare, IconCheck, IconHeartHandshake, IconX } from '@tabler/icons-react';
+import { IconScreenShare, IconCheck, IconX, IconRocket } from '@tabler/icons-react';
+import { doc, getDoc } from 'firebase/firestore';
 import {
   getFollowersForUser,
   getPostsForUser,
@@ -11,15 +12,12 @@ import {
   getIsFollowing,
   identity,
   getSinglePost,
-  getExchangeRates,
+  submitPost,
 } from 'deso-protocol';
 import {
-  Grid,
   Container,
   ThemeIcon,
   CopyButton,
-  Box,
-  Overlay,
   Avatar,
   Paper,
   Group,
@@ -37,8 +35,7 @@ import {
   Button,
   Loader,
   Collapse,
-  UnstyledButton,
-  List,
+  rem,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { DeSoIdentityContext } from 'react-deso-protocol';
@@ -52,7 +49,8 @@ import { replaceURLs } from '../../helpers/linkHelper';
 import { SubscriptionModal } from '../../components/SubscriptionModal';
 import { extractTwitchUsername } from '@/helpers/linkHelper';
 import { TwitchEmbed } from 'react-twitch-embed';
-import { TbPinned, TbPinnedOff } from 'react-icons/tb';
+import { TbPinned } from 'react-icons/tb';
+import { db } from '../../firebase-config';
 
 export default function Wave() {
   const router = useRouter();
@@ -68,22 +66,15 @@ export default function Wave() {
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [isLoadingNFTs, setIsLoadingNFTs] = useState(false);
   const [openedChat, { toggle }] = useDisclosure(true);
-  const [livestreamPost, setLivestreamPost] = useState(null);
-  const [isLoadingLivestream, setIsLoadingLivestream] = useState(false);
   const [pinnedPost, setPinnedPost] = useState();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [lastSeenPostHash, setLastSeenPostHash] = useState();
-
+  const [streamPlaybackId, setStreamPlaybackId] = useState();
   const embed = useRef();
 
+  // For Twitch Embed
   const handleReady = (e) => {
     embed.current = e;
-  };
-
-  const extractPlaybackId = (url) => {
-    const match = url.match(/https:\/\/lvpr\.tv\/\?v=(.*)/);
-    const playbackId = match ? match[1] : null;
-    return playbackId;
   };
 
   // Get Profile
@@ -99,6 +90,18 @@ export default function Wave() {
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
+    }
+  };
+
+  // Get Stream
+  const fetchStream = async () => {
+    const docRef = doc(db, 'streams', profile?.Username);
+    const streamData = await getDoc(docRef);
+
+    if (streamData.data()) {
+      setStreamPlaybackId(streamData.data().playbackId);
+    } else {
+      setStreamPlaybackId(undefined);
     }
   };
 
@@ -159,6 +162,7 @@ export default function Wave() {
     }
   };
 
+  // Load More Posts
   const fetchMorePosts = async () => {
     try {
       setIsLoadingMore(true);
@@ -195,7 +199,7 @@ export default function Wave() {
     }
   };
 
-  // Function to Follow userName
+  // Function to Follow user
   const followUser = async () => {
     try {
       await updateFollowingStatus({
@@ -221,7 +225,7 @@ export default function Wave() {
     }
   };
 
-  // Function to Unfollow userName
+  // Function to Unfollow user
   const unfollowUser = async () => {
     try {
       await updateFollowingStatus({
@@ -247,28 +251,6 @@ export default function Wave() {
     }
   };
 
-  // Getting userName's most recent Wave livestream
-  const fetchLivestreamPost = async () => {
-    try {
-      setIsLoadingLivestream(true);
-
-      const postData = await getPostsForUser({
-        Username: profile?.Username,
-        NumToFetch: 20,
-      });
-
-      const livestreamPost = postData.Posts.find(
-        (post) => post.PostExtraData?.WavesStreamTitle && livestreamPost?.VideoURLs[0]
-      );
-
-      setLivestreamPost(livestreamPost);
-
-      setIsLoadingLivestream(false);
-    } catch (error) {
-      console.error('Error fetching livestream post:', error);
-    }
-  };
-
   // Getting Pinned Post
   const fetchPinnedPost = async () => {
     try {
@@ -281,24 +263,61 @@ export default function Wave() {
     }
   };
 
+  // Promote Stream to DeSo
+  const postStreamToDeso = async () => {
+    try {
+      await submitPost({
+        UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
+        BodyObj: {
+          Body: `Come Watch ${`${profile?.Username}'s Wave`}\nvisit: \nhttps://desowaves.vercel.app/wave/${
+            profile?.Username
+          }`,
+          VideoURLs: [`https://lvpr.tv/?v=${streamPlaybackId}`],
+          ImageURLs: [],
+        },
+        PostExtraData: {
+          WavesStreamTitle: profile.ExtraData?.WavesStreamTitle || `${profile?.Username}'s Wave`,
+        },
+      });
+
+      notifications.show({
+        title: 'Success',
+        icon: <IconCheck size="1.1rem" />,
+        color: 'green',
+        message: `You Promoted ${profile?.Username}'s Wave`,
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        icon: <IconX size="1.1rem" />,
+        color: 'red',
+        message: `Something Happened: ${error}`,
+      });
+      console.log('something happened: ' + error);
+    }
+  };
+
+  // Fetch profile for username
   useEffect(() => {
     if (userName) {
       fetchProfile();
     }
   }, [userName]);
 
+  // If the profile exists, fetch the data for the profile
   useEffect(() => {
     if (profile) {
       fetchNFTs(25);
       fetchFollowerInfo();
       fetchPosts();
-      fetchLivestreamPost();
+      fetchStream();
     }
     if (profile?.ExtraData?.PinnedPostHashHex) {
       fetchPinnedPost();
     }
   }, [profile]);
 
+  // Get if Current User follows profile
   useEffect(() => {
     if (profile?.PublicKeyBase58Check && currentUser?.PublicKeyBase58Check) {
       getIsFollowingData();
@@ -353,9 +372,10 @@ export default function Wave() {
 
             <Space h="md" />
             <Card.Section>
-              {livestreamPost ? (
+              {streamPlaybackId ? (
                 <>
                   <Player
+                    lowLatency="force"
                     priority
                     controls
                     showPipButton
@@ -364,8 +384,8 @@ export default function Wave() {
                         loading: '#3cdfff',
                       },
                     }}
-                    playbackId={extractPlaybackId(livestreamPost?.VideoURLs[0])}
-                    title={livestreamPost.ExtraData?.WavesStreamTitle}
+                    playbackId={streamPlaybackId}
+                    title={profile.ExtraData?.WavesStreamTitle || `${profile?.Username}'s Wave`}
                   />
                 </>
               ) : (
@@ -398,42 +418,53 @@ export default function Wave() {
               )}
             </Card.Section>
             <Space h="md" />
-
-            <Space h="md" />
-
-            <Paper shadow="xl" radius="md" p="xl">
-              <Group>
+            <Group justify="space-between">
+              <ActionIcon.Group>
                 <CopyButton value={`https://desowaves.vercel.app/wave/${userName}`} timeout={2000}>
                   {({ copied, copy }) => (
                     <>
-                      <Tooltip label={copied ? 'Wave Copied' : `Share ${userName}'s Wave`}>
-                        <Button
-                          radius="sm"
-                          size="sm"
-                          color={copied ? 'teal' : 'blue'}
+                      <Tooltip label={copied ? 'Copied' : `Share ${userName}'s Wave`}>
+                        <ActionIcon
+                          variant="default"
+                          size="xl"
+                          aria-label="Share Button"
                           onClick={copy}
                         >
                           {copied ? (
                             <>
-                              <IconCheck size={16} />
+                              <IconCheck style={{ width: rem(20) }} stroke={1.5} />
                             </>
                           ) : (
                             <>
-                              <IconScreenShare size={16} />
+                              <IconScreenShare style={{ width: rem(20) }} stroke={1.5} />
                             </>
                           )}
-                        </Button>
+                        </ActionIcon>
                       </Tooltip>
                     </>
                   )}
                 </CopyButton>
 
-                <SubscriptionModal
-                  publickey={profile.PublicKeyBase58Check}
-                  username={profile?.Username}
-                />
-              </Group>
-              <Space h="sm" />
+                <Tooltip label="Promote Wave Onchain">
+                  <ActionIcon
+                    onClick={postStreamToDeso}
+                    variant="default"
+                    size="xl"
+                    aria-label="Launch"
+                  >
+                    <IconRocket style={{ width: rem(20) }} stroke={1.5} />
+                  </ActionIcon>
+                </Tooltip>
+              </ActionIcon.Group>
+              <SubscriptionModal
+                publickey={profile.PublicKeyBase58Check}
+                username={profile?.Username}
+              />
+            </Group>
+
+            <Space h="md" />
+
+            <Paper shadow="xl" radius="md" p="xl">
               <Text
                 fz="sm"
                 style={{
