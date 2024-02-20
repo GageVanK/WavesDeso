@@ -112,6 +112,15 @@ export default function Post({ post, username }) {
     return playbackId;
   };
 
+  useEffect(() => {
+    if (post) {
+      setHeartCount(post.LikeCount);
+      setRepostCount(post.RepostCount);
+      setDiamondCount(post.DiamondCount);
+      setCommentCount(post.CommentCount);
+    }
+  }, [post]);
+
   // Get if Current User follows profile
   const getIsFollowingData = async () => {
     try {

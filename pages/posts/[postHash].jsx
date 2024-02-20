@@ -37,6 +37,7 @@ export default function PostPage() {
         });
 
         setSinglePost(postData.PostFound);
+        console.log(postData);
 
         // Fetch top-level comments
         setTopLevelComments(postData.PostFound.Comments);
@@ -71,10 +72,7 @@ export default function PostPage() {
     <>
       <Space h={55} />
       <Container size="xxl">
-        <Post
-          post={singlePost}
-          username={singlePost.ProfileEntryResponse?.Username}
-        />
+        <Post post={singlePost} username={singlePost.ProfileEntryResponse?.Username} />
       </Container>
 
       {topLevelComments && topLevelComments.length > 0 ? (
