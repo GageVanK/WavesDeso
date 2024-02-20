@@ -95,7 +95,7 @@ export const Stream = () => {
   const handleCreateAndStoreStream = async () => {
     try {
       // Create the stream
-      await userStream.mutate?.();
+      userStream.mutate?.();
 
       // Set stream key, playback id, and id
       setStreamKey(userStream.data?.streamKey);
