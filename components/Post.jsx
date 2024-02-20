@@ -52,6 +52,8 @@ import {
   IconHeartFilled,
   IconDiamondFilled,
   IconHeartBroken,
+  IconUserMinus,
+  IconUserPlus,
 } from '@tabler/icons-react';
 import { Player } from '@livepeer/react';
 import { useDisclosure, useHover } from '@mantine/hooks';
@@ -344,7 +346,7 @@ export default function Post({ post, username, key }) {
           ImageURLs: [],
         },
       });
-   
+
       notifications.show({
         title: 'Success',
         icon: <IconCheck size="1.1rem" />,
@@ -482,7 +484,7 @@ export default function Post({ post, username, key }) {
     }
   };
 
-  //Delete Love Post Function
+  // Delete Love Post Function
   const deleteHeart = async () => {
     try {
       await deletePostAssociation({
@@ -516,7 +518,7 @@ export default function Post({ post, username, key }) {
     }
   };
 
-  //Diamond Tip Post
+  // Diamond Tip Post
   const sendDiamondTip = async () => {
     if (!currentUser) {
       notifications.show({
@@ -802,7 +804,7 @@ export default function Post({ post, username, key }) {
     }
   };
 
-  // Getting if bookmarked post & getting association Id so user has option to delete the association
+  // Getting if is close friend & getting association Id so user has option to delete the association
   const getDidCloseFriend = async () => {
     try {
       const didCF = await getUserAssociations({
@@ -837,7 +839,7 @@ export default function Post({ post, username, key }) {
 
       notifications.show({
         title: 'Success',
-        icon: <IconCheck size="1.1rem" />,
+        icon: <IconUserPlus size="1.1rem" />,
         color: 'blue',
         message: `${username} added to Close Friends!`,
       });
@@ -855,7 +857,7 @@ export default function Post({ post, username, key }) {
     }
   };
 
-  // Remove Bookmark Post
+  // Remove Close Friend
   const handleRemoveCloseFriend = async () => {
     try {
       await deleteUserAssociation({
@@ -869,9 +871,9 @@ export default function Post({ post, username, key }) {
 
       notifications.show({
         title: 'Success',
-        icon: <IconCheck size="1.1rem" />,
+        icon: <IconUserMinus size="1.1rem" />,
         color: 'blue',
-        message: 'Bookmark Removed!',
+        message: 'Close Friend Removed!',
       });
 
       setIsCloseFriend(false);

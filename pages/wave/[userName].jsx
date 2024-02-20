@@ -1,7 +1,14 @@
 import { useEffect, useState, useContext, useRef } from 'react';
 import Link from 'next/link';
 import { Player } from '@livepeer/react';
-import { IconScreenShare, IconCheck, IconX, IconRocket } from '@tabler/icons-react';
+import {
+  IconScreenShare,
+  IconCheck,
+  IconX,
+  IconRocket,
+  IconUserPlus,
+  IconUserMinus,
+} from '@tabler/icons-react';
 import { doc, getDoc } from 'firebase/firestore';
 import {
   getFollowersForUser,
@@ -13,6 +20,9 @@ import {
   identity,
   getSinglePost,
   submitPost,
+  createUserAssociation,
+  deleteUserAssociation,
+  getUserAssociations,
 } from 'deso-protocol';
 import {
   Container,
@@ -51,6 +61,7 @@ import { extractTwitchUsername } from '@/helpers/linkHelper';
 import { TwitchEmbed } from 'react-twitch-embed';
 import { TbPinned } from 'react-icons/tb';
 import { db } from '../../firebase-config';
+import { PiUserCirclePlus, PiUserCircleMinus } from 'react-icons/pi';
 
 export default function Wave() {
   const router = useRouter();
@@ -70,6 +81,8 @@ export default function Wave() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [lastSeenPostHash, setLastSeenPostHash] = useState();
   const [streamPlaybackId, setStreamPlaybackId] = useState();
+  const [isCloseFriend, setIsCloseFriend] = useState(false);
+  const [didCloseFriendId, setCloseFriendId] = useState();
   const embed = useRef();
 
   // For Twitch Embed
@@ -297,6 +310,93 @@ export default function Wave() {
     }
   };
 
+  // Getting if is close friend & getting association Id so user has option to delete the association
+  const getDidCloseFriend = async () => {
+    try {
+      const didCF = await getUserAssociations({
+        TargetUserPublicKeyBase58Check: profile.PublicKeyBase58Check,
+        TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        AssociationType: 'CLOSE-FRIEND',
+        AssociationValue: 'CLOSE-FRIEND',
+      });
+
+      setCloseFriendId(didCF.Associations[0]?.AssociationID);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      getDidCloseFriend();
+    }
+  }, [currentUser, isCloseFriend]);
+
+  // Add Close Friend
+  const handleAddCloseFriend = async () => {
+    try {
+      await createUserAssociation({
+        TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        TargetUserPublicKeyBase58Check: profile.PublicKeyBase58Check,
+        AssociationType: 'CLOSE-FRIEND',
+        AssociationValue: 'CLOSE-FRIEND',
+        MinFeeRateNanosPerKB: 1000,
+      });
+
+      notifications.show({
+        title: 'Success',
+        icon: <IconUserPlus size="1.1rem" />,
+        color: 'blue',
+        message: `${profile.Username} added to Close Friends!`,
+      });
+      setIsCloseFriend(true);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        icon: <IconX size="1.1rem" />,
+        color: 'red',
+        message: `Something Happened: ${error}`,
+      });
+      setIsCloseFriend(false);
+
+      console.error('Error submitting heart:', error);
+    }
+  };
+
+  // Remove Close Friend
+  const handleRemoveCloseFriend = async () => {
+    try {
+      await deleteUserAssociation({
+        TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        TargetUserPublicKeyBase58Check: profile.PublicKeyBase58Check,
+        AssociationID: didCloseFriendId,
+        AssociationType: 'CLOSE-FRIEND',
+        AssociationValue: 'CLOSE-FRIEND',
+        MinFeeRateNanosPerKB: 1000,
+      });
+
+      notifications.show({
+        title: 'Success',
+        icon: <IconUserMinus size="1.1rem" />,
+        color: 'blue',
+        message: 'Close Friend Removed!',
+      });
+
+      setIsCloseFriend(false);
+      setCloseFriendId(null);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        icon: <IconX size="1.1rem" />,
+        color: 'red',
+        message: `Something Happened: ${error}`,
+      });
+
+      setIsCloseFriend(true);
+      console.error('Error submitting heart:', error);
+    }
+  };
+
   // Fetch profile for username
   useEffect(() => {
     if (userName) {
@@ -444,17 +544,43 @@ export default function Wave() {
                     </>
                   )}
                 </CopyButton>
-
-                <Tooltip label={`Promote ${profile?.Username}'s Wave Onchain`}>
-                  <ActionIcon
-                    onClick={postStreamToDeso}
-                    variant="default"
-                    size="xl"
-                    aria-label="Launch"
-                  >
-                    <IconRocket style={{ width: rem(20) }} stroke={1.5} />
-                  </ActionIcon>
-                </Tooltip>
+                {currentUser && (
+                  <Tooltip label={`Promote ${profile?.Username}'s Wave Onchain`}>
+                    <ActionIcon
+                      onClick={postStreamToDeso}
+                      variant="default"
+                      size="xl"
+                      aria-label="Launch"
+                    >
+                      <IconRocket style={{ width: rem(20) }} stroke={1.5} />
+                    </ActionIcon>
+                  </Tooltip>
+                )}
+                {currentUser &&
+                  currentUser?.PublicKeyBase58Check !== profile.PublicKeyBase58Check &&
+                  (isCloseFriend || didCloseFriendId ? (
+                    <Tooltip label={`Remove ${profile?.Username}'s as Close Friend`}>
+                      <ActionIcon
+                        variant="default"
+                        size="xl"
+                        aria-label="Remove Close Friend"
+                        onClick={() => handleRemoveCloseFriend()}
+                      >
+                        <IconUserMinus style={{ width: rem(20) }} stroke={1.5} />
+                      </ActionIcon>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip label={`Add ${profile?.Username}'s as Close Friend`}>
+                      <ActionIcon
+                        variant="default"
+                        size="xl"
+                        aria-label="Add Close Friend"
+                        onClick={() => handleAddCloseFriend()}
+                      >
+                        <IconUserPlus style={{ width: rem(20) }} stroke={1.5} />
+                      </ActionIcon>
+                    </Tooltip>
+                  ))}
               </ActionIcon.Group>
               <SubscriptionModal
                 publickey={profile.PublicKeyBase58Check}
