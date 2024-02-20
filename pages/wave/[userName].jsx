@@ -423,7 +423,7 @@ export default function Wave() {
                 <CopyButton value={`https://desowaves.vercel.app/wave/${userName}`} timeout={2000}>
                   {({ copied, copy }) => (
                     <>
-                      <Tooltip label={copied ? 'Copied' : `Share ${userName}'s Wave`}>
+                      <Tooltip label={copied ? 'Copied' : `Copy Wave Link`}>
                         <ActionIcon
                           variant="default"
                           size="xl"
@@ -445,7 +445,7 @@ export default function Wave() {
                   )}
                 </CopyButton>
 
-                <Tooltip label="Promote Wave Onchain">
+                <Tooltip label={`Promote ${profile?.Username}'s Wave Onchain`}>
                   <ActionIcon
                     onClick={postStreamToDeso}
                     variant="default"
