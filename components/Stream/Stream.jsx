@@ -96,21 +96,17 @@ export const Stream = () => {
     try {
       await userStream.mutate?.();
 
-      setStreamKey(userStream.data?.streamKey);
-      setStreamPlaybackId(userStream.data?.playbackId);
-      setStreamId(userStream.data?.id);
+      await setStreamKey(userStream.data?.streamKey);
+      await setStreamPlaybackId(userStream.data?.playbackId);
+      await setStreamId(userStream.data?.id);
+
+      await setDoc(doc(db, 'streams', currentUser.ProfileEntryResponse?.Username), {
+        streamId: streamId,
+        streamKey: streamKey,
+        playbackId: streamPlaybackId,
+      });
     } catch (error) {
       console.error('Error occurred creating and storing your intial stream.', error);
-    } finally {
-      if (userStream.isSuccess) {
-        await setDoc(doc(db, 'streams', currentUser.ProfileEntryResponse?.Username), {
-          streamId: streamId,
-          streamKey: streamKey,
-          playbackId: streamPlaybackId,
-        });
-
-        fetchStream();
-      }
     }
   };
 
