@@ -33,7 +33,7 @@ export function MantineAppShell({ children }) {
         Username: userName,
         NoErrorOnMissing: true,
       });
-     
+
       if (profileData !== null) {
         setProfile(profileData.Profile);
       }
@@ -59,7 +59,7 @@ export function MantineAppShell({ children }) {
       </Modal>
 
       <AppShell
-        padding="md"
+        padding={2}
         header={{ height: 60 }}
         navbar={{
           width: 300,

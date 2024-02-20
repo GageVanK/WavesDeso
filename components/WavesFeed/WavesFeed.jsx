@@ -47,7 +47,9 @@ export const WavesFeed = () => {
   return (
     <>
       {wavesFeed.map((post, index) => (
-        <Post post={post} key={index} username={post.ProfileEntryResponse.Username} />
+        <div key={index}>
+        <Post post={post} username={post.ProfileEntryResponse.Username} />
+        </div>
       ))}
 
       {wavesFeed.length === 0 && (

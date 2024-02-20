@@ -624,7 +624,6 @@ export default function NotificationsPage() {
                                     <Post
                                       post={n.relatedModifiedPost}
                                       username={n.transactorProfile?.Username}
-                                      key={n.transactorProfile?.PublicKeyBase58Check}
                                     />
                                   </>
                                 }
@@ -1109,7 +1108,6 @@ export default function NotificationsPage() {
                                 <Post
                                   post={n.relatedModifiedPost}
                                   username={n.transactorProfile?.Username}
-                                  key={n.transactorProfile?.PublicKeyBase58Check}
                                 />
                               </>
                             }
@@ -1557,7 +1555,6 @@ export default function NotificationsPage() {
                                 <Post
                                   post={n.relatedModifiedPost}
                                   username={n.transactorProfile?.Username}
-                                  key={n.transactorProfile?.PublicKeyBase58Check}
                                 />
                               </>
                             }

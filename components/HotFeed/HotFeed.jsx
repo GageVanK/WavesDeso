@@ -66,12 +66,13 @@ export const HotFeed = () => {
           <>
             {newFeed
               .filter((post) => post.ProfileEntryResponse?.Username !== 'BirthBlockNFT')
-              .map((post) => (
+              .map((post, index) => (
+                <div key={index}>
                 <Post
                   post={post}
                   username={post.ProfileEntryResponse?.Username}
-                  key={post.PostHashHex}
                 />
+                </div>
               ))}
 
             {isLoadingMore ? (

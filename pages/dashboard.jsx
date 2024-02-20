@@ -624,12 +624,10 @@ export default function ProfilePage() {
                 </>
               ) : posts && posts.length > 0 ? (
                 <>
-                  {posts.map((post) => (
-                    <Post
-                      post={post}
-                      username={currentUser.ProfileEntryResponse?.Username}
-                      key={post.PostHashHex}
-                    />
+                  {posts.map((post, index) => (
+                    <div key={index}>
+                      <Post post={post} username={currentUser.ProfileEntryResponse?.Username} />
+                    </div>
                   ))}
 
                   {isLoadingMore ? (
@@ -680,11 +678,12 @@ export default function ProfilePage() {
                 Object.keys(NFTs).map((key, index) => {
                   const nft = NFTs[key];
                   return (
-                    <Post
-                      post={nft.PostEntryResponse}
-                      username={nft.PostEntryResponse.ProfileEntryResponse.Username}
-                      key={nft.PostEntryResponse.PostHashHex}
-                    />
+                    <div key={index}>
+                      <Post
+                        post={nft.PostEntryResponse}
+                        username={nft.PostEntryResponse.ProfileEntryResponse.Username}
+                      />
+                    </div>
                   );
                 })
               ) : (
@@ -1060,12 +1059,10 @@ export default function ProfilePage() {
                 {bookmarks?.length === 0 ? (
                   <p>No bookmarks found</p>
                 ) : (
-                  bookmarks.map((bookmark) => (
-                    <Post
-                      key={bookmark?.PostHashHex}
-                      post={bookmark}
-                      username={bookmark.ProfileEntryResponse.Username}
-                    />
+                  bookmarks.map((bookmark, index) => (
+                    <div key={index}>
+                      <Post post={bookmark} username={bookmark.ProfileEntryResponse.Username} />
+                    </div>
                   ))
                 )}
               </>

@@ -72,7 +72,7 @@ import formatDate from '@/formatDate';
 import { SubscriptionModal } from './SubscriptionModal';
 import { NftModal } from './NftModal';
 
-export default function Post({ post, username, key }) {
+export default function Post({ post, username }) {
   const { hovered, ref } = useHover();
   const { currentUser } = useContext(DeSoIdentityContext);
   const [comment, setComment] = useState('');
@@ -978,7 +978,7 @@ export default function Post({ post, username, key }) {
         centered
         zIndex={9999999999999}
       >
-        <Text ta="center">Diamond Tip {username}'s Post</Text>
+        <Text ta="center">{`Diamond Tip ${username}'s Post`}</Text>
 
         <Group p="xl" grow h={111}>
           <Slider
@@ -1065,7 +1065,7 @@ export default function Post({ post, username, key }) {
       {post.IsHidden ? (
         <></>
       ) : (
-        <Paper m="md" shadow="lg" radius="md" p={3} withBorder key={key}>
+        <Paper m="md" shadow="lg" radius="md" p={3} withBorder>
           <Space h="xs" />
           <div
             style={{
@@ -1414,7 +1414,7 @@ export default function Post({ post, username, key }) {
 
               {pollOptions.map((option, index) => (
                 <>
-                  <Group grow>
+                  <Group key={index} grow>
                     <Button
                       justify="space-between"
                       fullWidth
@@ -1436,7 +1436,6 @@ export default function Post({ post, username, key }) {
                       }}
                       variant="light"
                       radius="xl"
-                      key={index}
                     >
                       {option}
                     </Button>

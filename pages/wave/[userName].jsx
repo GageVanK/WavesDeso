@@ -715,8 +715,10 @@ export default function Wave() {
                 </>
               ) : posts && posts.length > 0 ? (
                 <>
-                  {posts.map((post) => (
-                    <Post post={post} username={profile?.Username} key={post.PostHashHex} />
+                  {posts.map((post, index) => (
+                    <div key={index}>
+                      <Post post={post} username={profile?.Username} />
+                    </div>
                   ))}
 
                   {isLoadingMore ? (
@@ -767,11 +769,12 @@ export default function Wave() {
                 Object.keys(NFTs).map((key, index) => {
                   const nft = NFTs[key];
                   return (
-                    <Post
-                      post={nft.PostEntryResponse}
-                      username={nft.PostEntryResponse.ProfileEntryResponse.Username}
-                      key={nft.PostEntryResponse.PostHashHex}
-                    />
+                    <div key={index}>
+                      <Post
+                        post={nft.PostEntryResponse}
+                        username={nft.PostEntryResponse.ProfileEntryResponse.Username}
+                      />
+                    </div>
                   );
                 })
               ) : (

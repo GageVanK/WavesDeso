@@ -107,12 +107,13 @@ export const FollowerFeed = () => {
               <>
                 {followerFeed && followerFeed.length > 0 ? (
                   <>
-                    {followerFeed.map((post) => (
+                    {followerFeed.map((post, index) => (
+                      <div key={index}>
                       <Post
                         post={post}
                         username={post.ProfileEntryResponse?.Username}
-                        key={post.PostHashHex}
                       />
+                      </div>
                     ))}
                     {isLoadingMore ? (
                       <>

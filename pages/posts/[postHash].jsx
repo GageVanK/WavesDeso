@@ -74,7 +74,6 @@ export default function PostPage() {
         <Post
           post={singlePost}
           username={singlePost.ProfileEntryResponse?.Username}
-          key={singlePost.PostHashHex}
         />
       </Container>
 
