@@ -61,7 +61,7 @@ import { extractTwitchUsername } from '@/helpers/linkHelper';
 import { TwitchEmbed } from 'react-twitch-embed';
 import { TbPinned } from 'react-icons/tb';
 import { db } from '../../firebase-config';
-import { PiUserCirclePlus, PiUserCircleMinus } from 'react-icons/pi';
+import { FaUsers, FaUsersSlash } from 'react-icons/fa';
 
 export default function Wave() {
   const router = useRouter();
@@ -569,7 +569,7 @@ export default function Wave() {
                           aria-label="Remove Close Friend"
                           onClick={() => handleRemoveCloseFriend()}
                         >
-                          <IconUserMinus style={{ width: rem(20) }} stroke={1.5} />
+                          <FaUsersSlash style={{ width: rem(20) }} stroke={1.5} />
                         </ActionIcon>
                       </Tooltip>
                     ) : (
@@ -580,7 +580,7 @@ export default function Wave() {
                           aria-label="Add Close Friend"
                           onClick={() => handleAddCloseFriend()}
                         >
-                          <IconUserPlus style={{ width: rem(20) }} stroke={1.5} />
+                          <FaUsers style={{ width: rem(20) }} stroke={1.5} />
                         </ActionIcon>
                       </Tooltip>
                     ))}
