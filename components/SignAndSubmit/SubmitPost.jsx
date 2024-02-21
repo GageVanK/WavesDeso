@@ -41,7 +41,7 @@ import {
 } from '@mantine/core';
 import { GiWaveCrest } from 'react-icons/gi';
 import { DeSoIdentityContext } from 'react-deso-protocol';
-import { Player, useAssetMetrics, useCreateAsset } from '@livepeer/react';
+import { Player, useCreateAsset } from '@livepeer/react';
 import { ImEmbed } from 'react-icons/im';
 import { IconCheck, IconX } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';

@@ -412,10 +412,7 @@ export default function Wave() {
       fetchPosts();
       fetchStream();
     }
-    if (profile?.ExtraData?.PinnedPostHashHex) {
-      fetchPinnedPost();
-    }
-  }, [profile]);
+  }, [profile, profile?.PublicKeyBase58Check]);
 
   // Get if Current User follows profile
   useEffect(() => {
@@ -423,6 +420,13 @@ export default function Wave() {
       getIsFollowingData();
     }
   }, [currentUser?.PublicKeyBase58Check, profile?.PublicKeyBase58Check]);
+
+  useEffect(() => {
+    setPinnedPost(null);
+    if (profile?.ExtraData?.PinnedPostHashHex) {
+      fetchPinnedPost();
+    }
+  }, [profile, profile.Username, profile?.ExtraData?.PinnedPostHashHex]);
 
   return (
     <>

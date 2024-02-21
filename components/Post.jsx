@@ -13,11 +13,16 @@ import {
   createUserAssociation,
   deleteUserAssociation,
   getUserAssociations,
+  uploadImage,
 } from 'deso-protocol';
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, useRef } from 'react';
 import { DeSoIdentityContext } from 'react-deso-protocol';
 import Link from 'next/link';
 import {
+  Container,
+  Divider,
+  List,
+  FileButton,
   Text,
   UnstyledButton,
   Avatar,
@@ -55,22 +60,25 @@ import {
   IconUserMinus,
   IconUserPlus,
 } from '@tabler/icons-react';
+import { TiInfoLargeOutline } from 'react-icons/ti';
 import { Player } from '@livepeer/react';
 import { useDisclosure, useHover } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { BsChatQuoteFill, BsInfoCircleFill } from 'react-icons/bs';
-import { FaVoteYea } from 'react-icons/fa';
-import { RiUserUnfollowLine, RiUserAddLine, RiNftLine } from 'react-icons/ri';
+import { FaVoteYea, FaPoll } from 'react-icons/fa';
+import { RiUserUnfollowLine, RiUserAddLine, RiNftLine, RiImageAddFill } from 'react-icons/ri';
 import { TbPinned, TbPinnedOff } from 'react-icons/tb';
 import { GoBookmark, GoBookmarkFill } from 'react-icons/go';
 import { PiUserCirclePlus, PiUserCircleMinus } from 'react-icons/pi';
 import { FiEdit } from 'react-icons/fi';
 import { MdDeleteForever } from 'react-icons/md';
+import { CgPlayListAdd } from 'react-icons/cg';
+import { ImEmbed } from 'react-icons/im';
 import { replaceURLs } from '../helpers/linkHelper';
-import { getEmbedHeight, getEmbedWidth } from '../helpers/EmbedUrls';
 import formatDate from '@/formatDate';
 import { SubscriptionModal } from './SubscriptionModal';
 import { NftModal } from './NftModal';
+import { getEmbedHeight, getEmbedURL, getEmbedWidth, isValidEmbedURL } from '../helpers/EmbedUrls';
 
 export default function Post({ post, username }) {
   const { hovered, ref } = useHover();
@@ -103,6 +111,105 @@ export default function Post({ post, username }) {
   const [isFollowingUser, setisFollowingUser] = useState(false);
   const [didPinPost, setDidPinPost] = useState();
   const [editBody, setEditBody] = useState(post?.Body || '');
+  const [imageLoading, setImageLoading] = useState(false);
+  const [embedUrl, setEmbedUrl] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imageURL, setImageURL] = useState('');
+  const resetImageRef = useRef(null);
+  const [poll, setPoll] = useState(false);
+  const [pollOptions, setPollOptions] = useState(['', '']);
+  const [isLoadingPost, setIsLoadingPost] = useState(false);
+  const [embed, setEmbed] = useState(false);
+  const [uploadInitiated, setUploadInitiated] = useState(false);
+
+  const handlePollOptions = (index, value) => {
+    // Create a new array with the same values, but with the updated value at the specified index
+    const newOptions = [...pollOptions];
+    newOptions[index] = value;
+
+    setPollOptions(newOptions);
+  };
+
+  const addPollOption = () => {
+    setPollOptions([...pollOptions, '']); // Add a new empty option
+  };
+
+  const deletePollOption = (index) => {
+    const newOptions = pollOptions.filter((_, idx) => idx !== index);
+    setPollOptions(newOptions);
+  };
+
+  const pollToggle = () => {
+    if (poll) {
+      setPoll(false);
+    } else {
+      setPoll(true);
+    }
+  };
+
+  const embedToggle = () => {
+    if (embed) {
+      setEmbed(false);
+    } else {
+      setEmbed(true);
+    }
+  };
+
+  const handleEmbedLink = (e) => {
+    const link = e.target.value;
+
+    if (link.trim().length > 0) {
+      const response = getEmbedURL(link);
+      const isValid = isValidEmbedURL(response);
+      if (isValid) {
+        setEmbedUrl(response);
+      } else {
+        setEmbedUrl(null);
+      }
+    }
+  };
+
+  const handleUploadImage = async () => {
+    if (uploadInitiated) {
+      return; // Exit if upload has already been initiated
+    }
+    setUploadInitiated(true);
+
+    try {
+      setImageLoading(true);
+      const response = await uploadImage({
+        UserPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
+        file: imageFile,
+      });
+
+      setImageURL(response.ImageURL);
+      setImageLoading(false);
+      notifications.show({
+        title: 'Success',
+        icon: <IconCheck size="1.1rem" />,
+        color: 'green',
+        message: 'Uploaded!',
+      });
+    } catch (error) {
+      setImageLoading(false);
+      notifications.show({
+        title: 'Error',
+        icon: <IconX size="1.1rem" />,
+        color: 'red',
+        message: 'Something Happened!',
+      });
+      console.log(`Something happened: ${error}`);
+    } finally {
+      setUploadInitiated(false);
+    }
+  };
+
+  useEffect(() => {
+    if (imageFile) {
+      handleUploadImage(); // Automatically trigger upload when imageFile is set
+    }
+  }, [imageFile]); // This effect runs whenever imageFile changes
+
   const isWavesStream =
     post.VideoURLs && post.VideoURLs[0] && post.VideoURLs[0].includes('https://lvpr.tv/?v=');
 
@@ -222,13 +329,22 @@ export default function Post({ post, username }) {
     }
 
     try {
+      setIsLoadingPost(true);
+      // Filter out empty or whitespace-only options
+      const validPollOptions = pollOptions.filter((option) => option.trim() !== '');
+
       await submitPost({
         UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
         ParentStakeID: post.PostHashHex,
         BodyObj: {
           Body: comment,
           VideoURLs: [],
-          ImageURLs: [],
+          ImageURLs: imageURL ? [imageURL] : [],
+        },
+        PostExtraData: {
+          EmbedVideoURL: embedUrl || '',
+          PollOptions: validPollOptions.length >= 2 ? JSON.stringify(validPollOptions) : null,
+          PollWeightType: validPollOptions.length >= 2 ? 'unweighted' : null,
         },
       });
 
@@ -238,8 +354,22 @@ export default function Post({ post, username }) {
         color: 'green',
         message: 'Your comment was submitted!',
       });
-
+      setIsLoadingPost(false);
       setCommentCount(post.CommentCount + 1);
+      setComment('');
+      if (imageURL) {
+        setImageURL('');
+        setImageFile(null);
+        resetImageRef.current?.();
+      }
+      if (pollOptions && pollOptions.length > 1) {
+        setPollOptions(['', '']);
+        setPoll(false);
+      }
+      if (embedUrl) {
+        setEmbedUrl('');
+        setEmbed(false);
+      }
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -307,13 +437,22 @@ export default function Post({ post, username }) {
     }
 
     try {
+      setIsLoadingPost(true);
+      // Filter out empty or whitespace-only options
+      const validPollOptions = pollOptions.filter((option) => option.trim() !== '');
+
       await submitPost({
         UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
         RepostedPostHashHex: post.PostHashHex,
         BodyObj: {
           Body: quoteBody,
           VideoURLs: [],
-          ImageURLs: [],
+          ImageURLs: imageURL ? [imageURL] : [],
+        },
+        PostExtraData: {
+          EmbedVideoURL: embedUrl || '',
+          PollOptions: validPollOptions.length >= 2 ? JSON.stringify(validPollOptions) : null,
+          PollWeightType: validPollOptions.length >= 2 ? 'unweighted' : null,
         },
       });
       notifications.show({
@@ -322,7 +461,24 @@ export default function Post({ post, username }) {
         color: 'green',
         message: 'Quoted!',
       });
+      setIsLoadingPost(false);
       setRepostCount(post.RepostCount + 1);
+
+      setQuoteBody('');
+      if (imageURL) {
+        setImageURL('');
+        setImageFile(null);
+        resetImageRef.current?.();
+      }
+      if (pollOptions && pollOptions.length > 1) {
+        setPollOptions(['', '']);
+        setPoll(false);
+      }
+      if (embedUrl) {
+        setEmbedUrl('');
+        setEmbed(false);
+      }
+      closeQuote();
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -610,9 +766,9 @@ export default function Post({ post, username }) {
     }
   };
 
-  let pollOptions = [];
+  let pollPostOptions = [];
   if (post.PostExtraData && typeof post.PostExtraData.PollOptions === 'string') {
-    pollOptions = parsePollOptionsString(post.PostExtraData.PollOptions);
+    pollPostOptions = parsePollOptionsString(post.PostExtraData.PollOptions);
   }
 
   // Get Votes for Poll
@@ -622,9 +778,9 @@ export default function Post({ post, username }) {
       const votes = await countPostAssociations({
         PostHashHex: post.PostHashHex,
         AssociationType: 'POLL_RESPONSE',
-        AssociationValues: pollOptions,
+        AssociationValues: pollPostOptions,
       });
-
+      console.log(votes);
       setVoteCount(votes);
     } catch (error) {
       console.error('Error fetching poll votes:', error);
@@ -1038,27 +1194,229 @@ export default function Post({ post, username }) {
             style={{ flexGrow: 1, width: 'auto' }}
           />
         </Group>
-        <Group justify="right">
-          <Button
-            onClick={() => {
-              if (currentUser) {
-                submitQuote();
-                closeQuote();
-              } else {
-                notifications.show({
-                  title: 'Must be Signed In',
-                  icon: <IconX size="1.1rem" />,
-                  color: 'Red',
-                  message: 'Please sign in to post.',
-                });
-              }
-            }}
-            disabled={!quoteBody.trim()}
-          >
-            Quote
-          </Button>
-        </Group>
+        <Space h="xs" />
+        {imageURL && (
+          <div>
+            <ActionIcon
+              type="button"
+              onClick={() => {
+                setImageURL('');
+                setImageFile(null);
+                resetImageRef.current?.();
+              }}
+              size="xs"
+              color="red"
+            >
+              <IconX />
+            </ActionIcon>
+            <Image src={imageURL} alt="Uploaded" maw={240} mx="auto" radius="md" />
+          </div>
+        )}
 
+        {embedUrl && (
+          <>
+            <div>
+              <ActionIcon type="button" onClick={() => setEmbedUrl('')} size="xs" color="red">
+                <IconX />
+              </ActionIcon>
+            </div>
+
+            <iframe
+              title="extraembed-video"
+              id="embed-iframe"
+              className="w-full flex-shrink-0 feed-post__image"
+              height={getEmbedHeight(embedUrl)}
+              style={{ maxWidth: getEmbedWidth(embedUrl) }}
+              src={embedUrl}
+              frameBorder="0"
+              allow="picture-in-picture; clipboard-write; encrypted-media; gyroscope; accelerometer; encrypted-media;"
+              allowFullScreen
+            />
+
+            <Space h="xs" />
+          </>
+        )}
+
+        {poll && (
+          <>
+            <Space h="xs" />
+
+            <Container size="sm">
+              <Group justify="right">
+                <Tooltip label="Add Options">
+                  <ActionIcon type="button" onClick={addPollOption} size="sm">
+                    <CgPlayListAdd size="1.1rem" />
+                  </ActionIcon>
+                </Tooltip>
+              </Group>
+
+              <Space h="md" />
+
+              {pollOptions &&
+                pollOptions?.map((option, index) => (
+                  <div key={index}>
+                    <TextInput
+                      variant="filled"
+                      placeholder={`Option ${index + 1}`}
+                      radius="xl"
+                      value={option}
+                      onChange={(event) => handlePollOptions(index, event.currentTarget.value)}
+                      rightSection={
+                        index > 1 && (
+                          <ActionIcon
+                            radius="xl"
+                            size="sm"
+                            color="red"
+                            variant="light"
+                            type="button"
+                            onClick={() => deletePollOption(index)}
+                          >
+                            <MdDeleteForever />
+                          </ActionIcon>
+                        )
+                      }
+                    />
+
+                    <Space h="sm" />
+                  </div>
+                ))}
+            </Container>
+            <Space h="xs" />
+          </>
+        )}
+
+        {embed && (
+          <>
+            <Space h="xs" />
+            <Box w={222}>
+              <TextInput
+                leftSection={
+                  <>
+                    <Tooltip
+                      label={
+                        <>
+                          <Group justify="center">Supported</Group>
+
+                          <Divider />
+
+                          <List size="xs">
+                            <List.Item>Twitch</List.Item>
+                            <List.Item>Youtube</List.Item>
+                            <List.Item>Spotify</List.Item>
+                            <List.Item>Vimeo</List.Item>
+                            <List.Item>Giphy</List.Item>
+                            <List.Item>SoundCloud</List.Item>
+                            <List.Item>Mousai</List.Item>
+                            <List.Item>Request more in Global Chat!</List.Item>
+                          </List>
+                        </>
+                      }
+                      position="bottom"
+                      withArrow
+                    >
+                      <ActionIcon type="button" size="xs" radius="xl" variant="default">
+                        <TiInfoLargeOutline />
+                      </ActionIcon>
+                    </Tooltip>
+                  </>
+                }
+                rightSection={
+                  embedUrl && (
+                    <ActionIcon
+                      type="button"
+                      onClick={() => setEmbedUrl('')}
+                      color="red"
+                      size="xs"
+                      radius="xl"
+                      variant="subtle"
+                    >
+                      <IconX />
+                    </ActionIcon>
+                  )
+                }
+                value={embedUrl}
+                onChange={handleEmbedLink}
+                variant="filled"
+                size="xs"
+                radius="xl"
+                placeholder="Add Link"
+              />
+            </Box>
+            <Space h="xs" />
+          </>
+        )}
+
+        <Group justify="right">
+          <Group justify="apart">
+            <FileButton
+              onChange={setImageFile}
+              accept="image/png,image/jpeg,image/png,image.gif,image/webp"
+              resetRef={resetImageRef}
+              type="button"
+            >
+              {(props) => (
+                <Tooltip label="Upload Image">
+                  <ActionIcon
+                    color="blue"
+                    size="lg"
+                    variant="default"
+                    {...props}
+                    loading={uploadInitiated}
+                  >
+                    <RiImageAddFill size="1.2rem" />
+                  </ActionIcon>
+                </Tooltip>
+              )}
+            </FileButton>
+
+            <Tooltip label="Add Poll">
+              <ActionIcon
+                color="blue"
+                size="lg"
+                variant="default"
+                onClick={pollToggle}
+                type="button"
+              >
+                <FaPoll size="1.2rem" />
+              </ActionIcon>
+            </Tooltip>
+
+            <Tooltip label="Embed">
+              <ActionIcon
+                color="blue"
+                size="lg"
+                variant="default"
+                onClick={embedToggle}
+                type="button"
+              >
+                <ImEmbed size="1.2rem" />
+              </ActionIcon>
+            </Tooltip>
+
+            <Button
+              onClick={() => {
+                if (currentUser) {
+                  submitQuote();
+                } else {
+                  notifications.show({
+                    title: 'Must be Signed In',
+                    icon: <IconX size="1.1rem" />,
+                    color: 'Red',
+                    message: 'Please sign in to post.',
+                  });
+                }
+              }}
+              loading={isLoadingPost}
+              disabled={
+                !quoteBody.trim() ||
+                isLoadingPost ||
+                (poll && pollOptions.filter((option) => option.trim() !== '').length < 2)
+              }
+            >
+              Quote
+            </Button>
+          </Group>
+        </Group>
         <Post post={post} username={username} />
       </Modal>
 
@@ -1408,7 +1766,7 @@ export default function Post({ post, username }) {
 
               <Space h="xs" />
 
-              {pollOptions.map((option, index) => (
+              {pollPostOptions.map((option, index) => (
                 <>
                   <Group key={index} grow>
                     <Button
@@ -1550,10 +1908,217 @@ export default function Post({ post, username }) {
                 onChange={(event) => setComment(event.target.value)}
               />
               <Space h="sm" />
-              <Group justify="right">
-                <Button mr={5} radius="md" onClick={() => submitComment()}>
+              {imageURL && (
+                <div>
+                  <ActionIcon
+                    type="button"
+                    onClick={() => {
+                      setImageURL('');
+                      setImageFile(null);
+                      resetImageRef.current?.();
+                    }}
+                    size="xs"
+                    color="red"
+                  >
+                    <IconX />
+                  </ActionIcon>
+                  <Image src={imageURL} alt="Uploaded" maw={240} mx="auto" radius="md" />
+                </div>
+              )}
+
+              {embedUrl && (
+                <>
+                  <div>
+                    <ActionIcon type="button" onClick={() => setEmbedUrl('')} size="xs" color="red">
+                      <IconX />
+                    </ActionIcon>
+                  </div>
+
+                  <iframe
+                    title="extraembed-video"
+                    id="embed-iframe"
+                    className="w-full flex-shrink-0 feed-post__image"
+                    height={getEmbedHeight(embedUrl)}
+                    style={{ maxWidth: getEmbedWidth(embedUrl) }}
+                    src={embedUrl}
+                    frameBorder="0"
+                    allow="picture-in-picture; clipboard-write; encrypted-media; gyroscope; accelerometer; encrypted-media;"
+                    allowFullScreen
+                  />
+
+                  <Space h="xs" />
+                </>
+              )}
+
+              {poll && (
+                <>
+                  <Space h="xs" />
+
+                  <Container size="sm">
+                    <Group justify="right">
+                      <Tooltip label="Add Options">
+                        <ActionIcon type="button" onClick={addPollOption} size="sm">
+                          <CgPlayListAdd size="1.1rem" />
+                        </ActionIcon>
+                      </Tooltip>
+                    </Group>
+
+                    <Space h="md" />
+
+                    {pollOptions &&
+                      pollOptions?.map((option, index) => (
+                        <div key={index}>
+                          <TextInput
+                            variant="filled"
+                            placeholder={`Option ${index + 1}`}
+                            radius="xl"
+                            value={option}
+                            onChange={(event) =>
+                              handlePollOptions(index, event.currentTarget.value)
+                            }
+                            rightSection={
+                              index > 1 && (
+                                <ActionIcon
+                                  radius="xl"
+                                  size="sm"
+                                  color="red"
+                                  variant="light"
+                                  type="button"
+                                  onClick={() => deletePollOption(index)}
+                                >
+                                  <MdDeleteForever />
+                                </ActionIcon>
+                              )
+                            }
+                          />
+
+                          <Space h="sm" />
+                        </div>
+                      ))}
+                  </Container>
+                  <Space h="xs" />
+                </>
+              )}
+
+              {embed && (
+                <>
+                  <Space h="xs" />
+                  <Box w={222}>
+                    <TextInput
+                      leftSection={
+                        <>
+                          <Tooltip
+                            label={
+                              <>
+                                <Group justify="center">Supported</Group>
+
+                                <Divider />
+
+                                <List size="xs">
+                                  <List.Item>Twitch</List.Item>
+                                  <List.Item>Youtube</List.Item>
+                                  <List.Item>Spotify</List.Item>
+                                  <List.Item>Vimeo</List.Item>
+                                  <List.Item>Giphy</List.Item>
+                                  <List.Item>SoundCloud</List.Item>
+                                  <List.Item>Mousai</List.Item>
+                                  <List.Item>Request more in Global Chat!</List.Item>
+                                </List>
+                              </>
+                            }
+                            position="bottom"
+                            withArrow
+                          >
+                            <ActionIcon type="button" size="xs" radius="xl" variant="default">
+                              <TiInfoLargeOutline />
+                            </ActionIcon>
+                          </Tooltip>
+                        </>
+                      }
+                      rightSection={
+                        embedUrl && (
+                          <ActionIcon
+                            type="button"
+                            onClick={() => setEmbedUrl('')}
+                            color="red"
+                            size="xs"
+                            radius="xl"
+                            variant="subtle"
+                          >
+                            <IconX />
+                          </ActionIcon>
+                        )
+                      }
+                      value={embedUrl}
+                      onChange={handleEmbedLink}
+                      variant="filled"
+                      size="xs"
+                      radius="xl"
+                      placeholder="Add Link"
+                    />
+                  </Box>
+                  <Space h="xs" />
+                </>
+              )}
+
+              <Group ml={11} justify="apart">
+                <Button
+                  radius="md"
+                  onClick={() => submitComment()}
+                  loading={isLoadingPost}
+                  disabled={
+                    !comment.trim() ||
+                    isLoadingPost ||
+                    (poll && pollOptions.filter((option) => option.trim() !== '').length < 2)
+                  }
+                >
                   Comment
                 </Button>
+
+                <FileButton
+                  onChange={setImageFile}
+                  accept="image/png,image/jpeg,image/png,image.gif,image/webp"
+                  resetRef={resetImageRef}
+                  type="button"
+                >
+                  {(props) => (
+                    <Tooltip label="Upload Image">
+                      <ActionIcon
+                        color="blue"
+                        size="lg"
+                        variant="default"
+                        {...props}
+                        loading={uploadInitiated}
+                      >
+                        <RiImageAddFill size="1.2rem" />
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                </FileButton>
+
+                <Tooltip label="Add Poll">
+                  <ActionIcon
+                    color="blue"
+                    size="lg"
+                    variant="default"
+                    onClick={pollToggle}
+                    type="button"
+                  >
+                    <FaPoll size="1.2rem" />
+                  </ActionIcon>
+                </Tooltip>
+
+                <Tooltip label="Embed">
+                  <ActionIcon
+                    color="blue"
+                    size="lg"
+                    variant="default"
+                    onClick={embedToggle}
+                    type="button"
+                  >
+                    <ImEmbed size="1.2rem" />
+                  </ActionIcon>
+                </Tooltip>
               </Group>
             </>
           </Collapse>

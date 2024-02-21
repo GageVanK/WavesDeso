@@ -87,9 +87,10 @@ export const FollowerFeed = () => {
           <>
             <Space h="md" />
             <Checkbox
+              ml={11}
               label={
                 <UnstyledButton component={Link} href="/closeFriends">
-                  <Group>
+                  <Group gap="xs">
                     <LiaUsersSolid size="1.5rem" />
                     <Text fw={500} size="xs">
                       Close Friends
