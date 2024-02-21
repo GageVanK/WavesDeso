@@ -122,13 +122,11 @@ export default function CloseFriendFeed() {
             <>
               <Space h="md" />
               <Container size="30rem" px={0}>
-                <Paper shadow="xl" p="lg" withBorder>
-                  <Center>
-                    <Text size="md" fw={400}>
-                      Add Close Friends to View Your Close Friends Feed.
-                    </Text>
-                  </Center>
-                </Paper>
+                <Center>
+                  <Text size="md" fw={400}>
+                    Add Close Friends to View Your Close Friends Feed.
+                  </Text>
+                </Center>
               </Container>
               <Space h={222} />
             </>

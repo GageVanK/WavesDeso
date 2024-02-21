@@ -68,10 +68,7 @@ export const HotFeed = () => {
               .filter((post) => post.ProfileEntryResponse?.Username !== 'BirthBlockNFT')
               .map((post, index) => (
                 <div key={index}>
-                <Post
-                  post={post}
-                  username={post.ProfileEntryResponse?.Username}
-                />
+                  <Post post={post} username={post.ProfileEntryResponse?.Username} />
                 </div>
               ))}
 

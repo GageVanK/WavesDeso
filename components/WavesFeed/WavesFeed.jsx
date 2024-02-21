@@ -34,7 +34,6 @@ export const WavesFeed = () => {
         const filteredPosts = filterUniqueUsernames(
           followerFeedData.PostsFound.filter((post) => post.PostExtraData.WavesStreamTitle)
         );
-
         setWavesFeed(filteredPosts);
       } catch (error) {
         console.log('Something went wrong:', error);
@@ -48,7 +47,7 @@ export const WavesFeed = () => {
     <>
       {wavesFeed.map((post, index) => (
         <div key={index}>
-        <Post post={post} username={post.ProfileEntryResponse.Username} />
+          <Post post={post} username={post.ProfileEntryResponse.Username} />
         </div>
       ))}
 
@@ -56,13 +55,11 @@ export const WavesFeed = () => {
         <>
           <Space h="md" />
           <Container size="30rem" px={0}>
-            <Paper shadow="xl" p="lg" withBorder>
-              <Center>
-                <Text size="md" fw={400}>
-                  No Waves Right Now.
-                </Text>
-              </Center>
-            </Paper>
+            <Center>
+              <Text size="md" fw={400}>
+                No Waves Right Now.
+              </Text>
+            </Center>
           </Container>
           <Space h={222} />
         </>

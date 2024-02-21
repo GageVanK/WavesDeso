@@ -109,10 +109,7 @@ export const FollowerFeed = () => {
                   <>
                     {followerFeed.map((post, index) => (
                       <div key={index}>
-                      <Post
-                        post={post}
-                        username={post.ProfileEntryResponse?.Username}
-                      />
+                        <Post post={post} username={post.ProfileEntryResponse?.Username} />
                       </div>
                     ))}
                     {isLoadingMore ? (
@@ -143,13 +140,11 @@ export const FollowerFeed = () => {
                       <>
                         <Space h="md" />
                         <Container size="30rem" px={0}>
-                          <Paper shadow="xl" p="lg" withBorder>
-                            <Center>
-                              <Text size="md" fw={400}>
-                                Follow Some Creators To View Your Following Feed.
-                              </Text>
-                            </Center>
-                          </Paper>
+                          <Center>
+                            <Text size="md" fw={400}>
+                              Follow Some Creators To View Your Following Feed.
+                            </Text>
+                          </Center>
                         </Container>
                         <Space h={222} />
                       </>

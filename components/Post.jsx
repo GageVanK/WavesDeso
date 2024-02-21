@@ -62,7 +62,7 @@ import { BsChatQuoteFill, BsInfoCircleFill } from 'react-icons/bs';
 import { FaVoteYea } from 'react-icons/fa';
 import { RiUserUnfollowLine, RiUserAddLine, RiNftLine } from 'react-icons/ri';
 import { TbPinned, TbPinnedOff } from 'react-icons/tb';
-import { GoBookmark, GoBookmarkSlash } from 'react-icons/go';
+import { GoBookmark, GoBookmarkFill } from 'react-icons/go';
 import { PiUserCirclePlus, PiUserCircleMinus } from 'react-icons/pi';
 import { FiEdit } from 'react-icons/fi';
 import { MdDeleteForever } from 'react-icons/md';
@@ -1074,7 +1074,22 @@ export default function Post({ post, username }) {
               alignItems: 'center',
             }}
           >
-            <Group ml={7} justify="left">
+            <Group ml={7} gap={5} justify="left">
+              {currentUser &&
+                (isBookmarked || didBookmarkId ? (
+                  <Tooltip label="Remove Bookmark">
+                    <ActionIcon size="md" variant="subtle" onClick={() => handleRemoveBookmark()}>
+                      <GoBookmarkFill style={{ width: rem(20), height: rem(20) }} />
+                    </ActionIcon>
+                  </Tooltip>
+                ) : (
+                  <Tooltip label="Bookmark">
+                    <ActionIcon size="md" variant="subtle" onClick={() => handleBookmark()}>
+                      <GoBookmark style={{ width: rem(20), height: rem(20) }} />
+                    </ActionIcon>
+                  </Tooltip>
+                ))}
+
               <Text c="dimmed" size="xs" fw={500}>
                 {formatDate(post?.TimestampNanos)} ago
               </Text>
@@ -1083,7 +1098,7 @@ export default function Post({ post, username }) {
             <Group mr={7} justify="right">
               <Menu shadow="md" width={177}>
                 <Menu.Target>
-                  <ActionIcon color="blue" size="sm" variant="transparent">
+                  <ActionIcon color="blue" size="md" variant="transparent">
                     <IconDotsVertical />
                   </ActionIcon>
                 </Menu.Target>
@@ -1116,25 +1131,6 @@ export default function Post({ post, username }) {
                         Edit
                       </Menu.Item>
                     )}
-
-                  {currentUser &&
-                    (isBookmarked || didBookmarkId ? (
-                      <Menu.Item
-                        onClick={() => handleRemoveBookmark()}
-                        leftSection={
-                          <GoBookmarkSlash style={{ width: rem(16), height: rem(16) }} />
-                        }
-                      >
-                        Remove
-                      </Menu.Item>
-                    ) : (
-                      <Menu.Item
-                        onClick={() => handleBookmark()}
-                        leftSection={<GoBookmark style={{ width: rem(16), height: rem(16) }} />}
-                      >
-                        Bookmark
-                      </Menu.Item>
-                    ))}
 
                   {currentUser &&
                     currentUser?.PublicKeyBase58Check !== post.PosterPublicKeyBase58Check &&

@@ -16,7 +16,7 @@ import {
   ThemeIcon,
   Badge,
   Title,
-  Menu,
+  Tooltip,
   ActionIcon,
   rem,
   Modal,
@@ -997,56 +997,64 @@ export default function ProfilePage() {
                         )}
                       </Modal>
 
-                      <Paper shadow="xl" radius="md" key={index}>
+                      <Paper withBorder shadow="xl" radius="md" key={index}>
                         <Space h="md" />
                         <Group justify="space-between">
-                          <Text ml={11} size="xs" fw={500}>
-                            Created On: {formatVODDate(vod.createdAt)}
-                          </Text>
-                          <Menu shadow="md" width={123}>
-                            <Menu.Target>
-                              <ActionIcon color="blue" size="sm" variant="transparent">
-                                <IconDotsVertical />
-                              </ActionIcon>
-                            </Menu.Target>
-
-                            <Menu.Dropdown>
-                              <Menu.Item
-                                onClick={open}
-                                leftSection={
-                                  <MdPostAdd style={{ width: rem(16), height: rem(16) }} />
-                                }
-                              >
+                          {vod.recordingStatus === 'waiting' ? (
+                            <div>
+                              <Text ml={11} size="xs">
+                                Uploading
+                              </Text>
+                              <Center>
+                                <Loader ml={11} size="xs" type="dots" />
+                              </Center>
+                            </div>
+                          ) : (
+                            <Tooltip label="Post VOD Onchain">
+                              <Button radius="xl" ml={11} size="xs" onClick={open}>
                                 Post
-                              </Menu.Item>
+                              </Button>
+                            </Tooltip>
+                          )}
 
-                              <Menu.Item
+                          <Group>
+                            <Text size="xs" fw={500}>
+                              Created On: {formatVODDate(vod.createdAt)}
+                            </Text>
+                            <Tooltip label="Download VOD">
+                              <ActionIcon
+                                mr={11}
+                                size="md"
+                                variant="default"
                                 onClick={() => window.open(vod.mp4Url, '_blank')}
-                                leftSection={
-                                  <TbDownload style={{ width: rem(16), height: rem(16) }} />
-                                }
                               >
-                                Download
-                              </Menu.Item>
-                            </Menu.Dropdown>
-                          </Menu>
+                                <TbDownload style={{ width: rem(16), height: rem(16) }} />
+                              </ActionIcon>
+                            </Tooltip>
+                          </Group>
                         </Group>
 
                         <Space h="xs" />
+                        {vod.recordingStatus === 'waiting' ? (
+                          <></>
+                        ) : (
+                          <>
+                            <Player
+                              controls
+                              showPipButton
+                              theme={{
+                                colors: {
+                                  loading: '#3cdfff',
+                                },
+                              }}
+                              src={vod.mp4Url}
+                              title={`VOD #${index + 1}`}
+                            />
 
-                        <Player
-                          controls
-                          showPipButton
-                          theme={{
-                            colors: {
-                              loading: '#3cdfff',
-                            },
-                          }}
-                          src={vod.mp4Url}
-                          title={`VOD #${index + 1}`}
-                        />
+                            <Space h="xs" />
+                          </>
+                        )}
                       </Paper>
-                      <Space h="xs" />
                     </>
                   ))
                 )}

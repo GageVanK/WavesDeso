@@ -65,7 +65,8 @@ export const Stream = () => {
   const [streamPlaybackId, setStreamPlaybackId] = useState();
   const [streamKey, setStreamKey] = useState();
   const [streamTitle, setStreamTitle] = useState(
-    currentUser.ProfileEntryResponse?.ExtraData?.WavesStreamTitle || ''
+    currentUser.ProfileEntryResponse?.ExtraData?.WavesStreamTitle ||
+      `${currentUser?.ProfileEntryResponse?.Username}'s Wave`
   );
   const [streamTitleInput, setStreamTitleInput] = useState('');
   const [kickStreamKey, setKickStreamKey] = useState('');
@@ -95,9 +96,7 @@ export const Stream = () => {
   // Trigger Create Stream function + Store stream info in firebase
   const handleCreateStream = async () => {
     try {
-   
       userStream.mutate?.();
- 
     } catch (error) {
       console.error('Error occurred creating and storing your initial stream.', error);
     }
@@ -151,7 +150,10 @@ export const Stream = () => {
           ImageURLs: [],
         },
         PostExtraData: {
-          WavesStreamTitle: streamTitle,
+          WavesStreamTitle:
+            streamTitle ||
+            currentUser?.ProfileEntryResponse?.ExtraData?.WavesStreamTitle ||
+            `${currentUser?.ProfileEntryResponse?.Username}'s Wave`,
         },
       });
 
@@ -259,7 +261,6 @@ export const Stream = () => {
   // Update Stream Title by adding to users profile
   const updateStreamTitle = async () => {
     try {
-      setStreamTitle(streamTitleInput);
       const updateData = {
         UpdaterPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
         ProfilePublicKeyBase58Check: '',
@@ -269,10 +270,12 @@ export const Stream = () => {
         NewDescription: '',
         NewStakeMultipleBasisPoints: 12500,
         ExtraData: {
-          WavesStreamTitle: streamTitle,
+          WavesStreamTitle: streamTitleInput,
         },
       };
+
       await updateProfile(updateData);
+      setStreamTitle(streamTitleInput);
 
       notifications.show({
         title: 'Success',
