@@ -147,7 +147,7 @@ export default function NotificationsPage() {
       }
 
       setNotifications(matchedNotifications);
-      console.log(matchedNotifications);
+     
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching user notifications:', error);

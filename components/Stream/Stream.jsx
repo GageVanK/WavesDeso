@@ -95,9 +95,9 @@ export const Stream = () => {
   // Trigger Create Stream function + Store stream info in firebase
   const handleCreateStream = async () => {
     try {
-      // Create the stream
+   
       userStream.mutate?.();
-      console.log(userStream);
+ 
     } catch (error) {
       console.error('Error occurred creating and storing your initial stream.', error);
     }

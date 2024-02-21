@@ -88,9 +88,6 @@ export default function CloseFriendFeed() {
         setCloseFriendsFeed(closeFriendsPosts);
 
         setIsLoading(false);
-
-        // Now you have all the posts for close friends with updated profiles
-        console.log('Close friends posts:', closeFriendsPosts);
       } catch (error) {
         console.error('Error fetching posts for close friends:', error);
       }

@@ -330,7 +330,7 @@ export default function Wave() {
     if (currentUser) {
       getDidCloseFriend();
     }
-  }, [currentUser, isCloseFriend]);
+  }, [currentUser, isCloseFriend, profile]);
 
   // Add Close Friend
   const handleAddCloseFriend = async () => {

@@ -38,7 +38,7 @@ export default function PostPage() {
         });
 
         setSinglePost(postData?.PostFound);
-        console.log(postData);
+      
 
         // Fetch top-level comments
         setTopLevelComments(postData.PostFound?.Comments);
@@ -58,7 +58,7 @@ export default function PostPage() {
     }
   }, [postHash]);
 
-  console.log(singlePost);
+
 
   const Comment = ({ comment }) => (
     <Container size="lg" key={comment.PostHashHex}>
