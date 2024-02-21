@@ -1187,7 +1187,7 @@ export default function Post({ post, username }) {
 
           <Textarea
             variant="unstyled"
-            placeholder="Say some dope shit"
+            placeholder="Quote this post..."
             size="lg"
             value={quoteBody}
             onChange={(event) => setQuoteBody(event.currentTarget.value)}
