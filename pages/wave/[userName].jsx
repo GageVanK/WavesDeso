@@ -426,7 +426,7 @@ export default function Wave() {
     if (profile?.ExtraData?.PinnedPostHashHex) {
       fetchPinnedPost();
     }
-  }, [profile, profile.Username, profile?.ExtraData?.PinnedPostHashHex]);
+  }, [profile, profile?.Username, profile?.ExtraData?.PinnedPostHashHex]);
 
   return (
     <>
