@@ -83,8 +83,7 @@ export const SignAndSubmitTx = ({ close }) => {
   const [creatorRoyaltyPercentage, setCreatorRoyaltyPercentage] = useState(0);
   const [coinHolderRoyaltyPercentage, setCoinHolderRoyaltyPercentage] = useState(0);
   const [checked, setChecked] = useState(false);
-  const [buyNowPrice, setBuyNowPrice] = useState();
-  const [minBidPrice, setMinBidPrice] = useState();
+  const [price, setPrice] = useState();
   const [extraCreatorRoyalties, setExtraCreatorRoyalties] = useState({});
   const [searchResults, setSearchResults] = useState([]);
   const [value, setValue] = useState('');
@@ -154,7 +153,7 @@ export const SignAndSubmitTx = ({ close }) => {
     // Add selected creator with default percentage - 10%
     setExtraCreatorRoyalties((prevState) => ({
       ...prevState,
-      [publicKey]: convertToBasisPoints(10), // Convert default percentage to basis points
+      [publicKey]: convertToBasisPoints(0), // Convert default percentage to basis points
     }));
     // Clear search results and value
     setSearchResults([]);
@@ -376,10 +375,8 @@ export const SignAndSubmitTx = ({ close }) => {
           NumCopies: nftCopies,
           NFTRoyaltyToCreatorBasisPoints: convertToBasisPoints(creatorRoyaltyPercentage),
           NFTRoyaltyToCoinBasisPoints: convertToBasisPoints(coinHolderRoyaltyPercentage),
-          MinBidAmountNanos: checked
-            ? convertDESOToNanos(buyNowPrice)
-            : convertDESOToNanos(minBidPrice),
-          BuyNowPriceNanos: checked ? convertDESOToNanos(buyNowPrice) : undefined,
+          MinBidAmountNanos: convertDESOToNanos(price),
+          BuyNowPriceNanos: checked ? convertDESOToNanos(price) : undefined,
           IsBuyNow: checked,
           AdditionalDESORoyaltiesMap: extraCreatorRoyalties || undefined,
           HasUnlockable: false,
@@ -429,11 +426,11 @@ export const SignAndSubmitTx = ({ close }) => {
         setCreatorRoyaltyPercentage(0);
         setCoinHolderRoyaltyPercentage(0);
         setExtraCreatorRoyalties({});
-        setMinBidPrice();
-        if (checked && buyNowPrice) {
-          setBuyNowPrice();
-          checked(false);
-        }
+        setPrice(undefined);
+      }
+
+      if (checked) {
+        checked(false);
       }
 
       if (typeof close === 'function') {
@@ -464,10 +461,8 @@ export const SignAndSubmitTx = ({ close }) => {
           NumCopies: nftCopies,
           NFTRoyaltyToCreatorBasisPoints: convertToBasisPoints(creatorRoyaltyPercentage),
           NFTRoyaltyToCoinBasisPoints: convertToBasisPoints(coinHolderRoyaltyPercentage),
-          MinBidAmountNanos: checked
-            ? convertDESOToNanos(buyNowPrice)
-            : convertDESOToNanos(minBidPrice),
-          BuyNowPriceNanos: checked ? convertDESOToNanos(buyNowPrice) : undefined,
+          MinBidAmountNanos: convertDESOToNanos(price),
+          BuyNowPriceNanos: checked ? convertDESOToNanos(price) : undefined,
           IsBuyNow: checked,
           AdditionalDESORoyaltiesMap: extraCreatorRoyalties || undefined,
           HasUnlockable: false,
@@ -499,11 +494,11 @@ export const SignAndSubmitTx = ({ close }) => {
         setCreatorRoyaltyPercentage(0);
         setCoinHolderRoyaltyPercentage(0);
         setExtraCreatorRoyalties({});
-        setMinBidPrice();
-        if (checked && buyNowPrice) {
-          setBuyNowPrice();
-          checked(false);
-        }
+        setPrice(undefined);
+      }
+
+      if (checked) {
+        checked(false);
       }
     } catch (err) {
       console.log(`something happened: ${err}`);
@@ -911,9 +906,11 @@ export const SignAndSubmitTx = ({ close }) => {
               !bodyText.trim() ||
               isLoadingPost ||
               (poll && pollOptions.filter((option) => option.trim() !== '').length < 2) ||
-              (checkedNft && !minBidPrice) ||
-              (checkedNft && checked && !buyNowPrice) ||
-              (checkedNft && checked && minBidPrice < buyNowPrice)
+              (checkedNft && !price) ||
+              creatorRoyaltyPercentage > 100 ||
+              coinHolderRoyaltyPercentage > 100 ||
+              (Object.keys(extraCreatorRoyalties).length > 0 &&
+                Object.values(extraCreatorRoyalties).some((percentage) => percentage > 100))
             }
             loading={isLoadingPost}
           >
@@ -1036,11 +1033,11 @@ export const SignAndSubmitTx = ({ close }) => {
                 allowNegative={false}
                 hideControls
                 prefix="$DESO "
-                value={buyNowPrice}
-                onChange={setBuyNowPrice}
+                value={price}
+                onChange={setPrice}
                 thousandSeparator=","
               />
-              {checked && buyNowPrice && <> ≈ {convertDESOToUSD(buyNowPrice)}</>}
+              {checked && price && <> ≈ {convertDESOToUSD(price)}</>}
               <Space h="xs" />
             </>
           ) : (
@@ -1053,17 +1050,11 @@ export const SignAndSubmitTx = ({ close }) => {
                 allowNegative={false}
                 hideControls
                 prefix="$DESO "
-                value={minBidPrice}
-                onChange={setMinBidPrice}
+                value={price}
+                onChange={setPrice}
                 thousandSeparator=","
-                error={
-                  checked &&
-                  buyNowPrice &&
-                  minBidPrice < buyNowPrice &&
-                  'Min Bid must be greater than or equal to Buy Now Price'
-                }
               />
-              {minBidPrice && <> ≈ {convertDESOToUSD(minBidPrice)}</>}
+              {price && <> ≈ {convertDESOToUSD(price)}</>}
             </>
           )}
 
