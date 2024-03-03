@@ -1061,7 +1061,7 @@ export default function Post({ post, username }) {
         title={<Title order={2}>Mint As NFT</Title>}
         zIndex={9999999999999}
       >
-        <NftModal postHash={post?.PostHashHex} />
+        <NftModal postHash={post?.PostHashHex} close={closeNft} />
       </Modal>
 
       <Modal

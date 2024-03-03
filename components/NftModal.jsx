@@ -25,14 +25,13 @@ import { IconPlus, IconCheck, IconX } from '@tabler/icons-react';
 import { MdDeleteForever } from 'react-icons/md';
 import { BiSearchAlt } from 'react-icons/bi';
 
-export function NftModal({ postHash }) {
+export function NftModal({ postHash, close }) {
   const { currentUser } = useContext(DeSoIdentityContext);
   const [nftCopies, setNftCopies] = useState(1);
   const [creatorRoyaltyPercentage, setCreatorRoyaltyPercentage] = useState(0);
   const [coinHolderRoyaltyPercentage, setCoinHolderRoyaltyPercentage] = useState(0);
   const [checked, setChecked] = useState(false);
-  const [buyNowPrice, setBuyNowPrice] = useState();
-  const [minBidPrice, setMinBidPrice] = useState();
+  const [price, setPrice] = useState();
   const [extraCreatorRoyalties, setExtraCreatorRoyalties] = useState({});
   const [searchResults, setSearchResults] = useState([]);
   const [value, setValue] = useState('');
@@ -98,7 +97,6 @@ export function NftModal({ postHash }) {
   const handleAddCreator = (publicKey) => {
     // Add selected creator with default percentage
     setExtraCreatorRoyalties((prevState) => {
-     
       return {
         ...prevState,
         [publicKey]: convertToBasisPoints(0), // Convert default percentage to basis points
@@ -110,20 +108,18 @@ export function NftModal({ postHash }) {
   };
 
   const handleCreatorPercentageChange = (publicKey, updatedPercentage) => {
-  
     setExtraCreatorRoyalties((prevState) => {
       const updatedMap = {
         ...prevState,
         [publicKey]: convertToBasisPoints(updatedPercentage), // Convert updated percentage to basis points
       };
- 
+
       return updatedMap;
     });
   };
 
   const deleteExtraCreator = (publicKey) => {
     setExtraCreatorRoyalties((prevState) => {
-  
       const newOptions = { ...prevState };
       delete newOptions[publicKey];
       return newOptions;
@@ -138,8 +134,8 @@ export function NftModal({ postHash }) {
         NumCopies: nftCopies,
         NFTRoyaltyToCreatorBasisPoints: convertToBasisPoints(creatorRoyaltyPercentage),
         NFTRoyaltyToCoinBasisPoints: convertToBasisPoints(coinHolderRoyaltyPercentage),
-        MinBidAmountNanos: convertDESOToNanos(minBidPrice),
-        BuyNowPriceNanos: (checked && convertDESOToNanos(buyNowPrice)) || undefined,
+        MinBidAmountNanos: convertDESOToNanos(price),
+        BuyNowPriceNanos: (checked && convertDESOToNanos(price)) || undefined,
         IsBuyNow: checked,
         AdditionalDESORoyaltiesMap: extraCreatorRoyalties || undefined,
         HasUnlockable: false,
@@ -148,6 +144,19 @@ export function NftModal({ postHash }) {
       };
 
       const response = await createNFT(request);
+
+      setCheckedNft(false);
+      setNftCopies(1);
+      setCreatorRoyaltyPercentage(0);
+      setCoinHolderRoyaltyPercentage(0);
+      setExtraCreatorRoyalties({});
+      setPrice(undefined);
+
+      if (checked) {
+        checked(false);
+      }
+
+      close();
 
       notifications.show({
         title: 'Success',
@@ -198,7 +207,7 @@ export function NftModal({ postHash }) {
         />
       </Group>
       <Space h="xs" />
-      {checked && (
+      {checked ? (
         <>
           <NumberInput
             variant="filled"
@@ -208,33 +217,31 @@ export function NftModal({ postHash }) {
             allowNegative={false}
             hideControls
             prefix="$DESO "
-            value={buyNowPrice}
-            onChange={setBuyNowPrice}
+            value={price}
+            onChange={setPrice}
             thousandSeparator=","
           />
-          {checked && buyNowPrice && <> ≈ {convertDESOToUSD(buyNowPrice)}</>}
+          {checked && price && <> ≈ {convertDESOToUSD(price)}</>}
           <Space h="xs" />
         </>
+      ) : (
+        <>
+          <NumberInput
+            variant="filled"
+            label="Minimum Bid"
+            description="Set the minimum bid price for your NFT."
+            placeholder="Enter Amount in $DESO"
+            allowNegative={false}
+            hideControls
+            prefix="$DESO "
+            value={price}
+            onChange={setPrice}
+            thousandSeparator=","
+          />
+          {price && <> ≈ {convertDESOToUSD(price)}</>}
+        </>
       )}
-      <NumberInput
-        variant="filled"
-        label="Minimum Bid"
-        description="Set the minimum bid price for your NFT."
-        placeholder="Enter Amount in $DESO"
-        allowNegative={false}
-        hideControls
-        prefix="$DESO "
-        value={minBidPrice}
-        onChange={setMinBidPrice}
-        thousandSeparator=","
-        error={
-          checked &&
-          buyNowPrice &&
-          minBidPrice < buyNowPrice &&
-          'Min Bid must be greater than or equal to Buy Now Price'
-        }
-      />
-      {minBidPrice && <> ≈ {convertDESOToUSD(minBidPrice)}</>}
+
       <Space h="lg" />
       <Divider />
       <Space h="lg" />
@@ -375,10 +382,35 @@ export function NftModal({ postHash }) {
 
       <Space h="xs" />
       <Group justify="right">
-        <Button disable={!minBidPrice || (checked && !minBidPrice)} onClick={() => handleMint()}>
+        <Button
+          disabled={
+            !price ||
+            creatorRoyaltyPercentage +
+              coinHolderRoyaltyPercentage +
+              (Object.keys(extraCreatorRoyalties).length > 0
+                ? Object.values(extraCreatorRoyalties).reduce((acc, cur) => acc + cur / 100, 0)
+                : 0) >
+              100
+          }
+          onClick={() => handleMint()}
+        >
           Mint
         </Button>
       </Group>
+
+      {creatorRoyaltyPercentage +
+        coinHolderRoyaltyPercentage +
+        (Object.keys(extraCreatorRoyalties).length > 0
+          ? Object.values(extraCreatorRoyalties).reduce((acc, cur) => acc + cur / 100, 0)
+          : 0) >
+        100 && (
+        <>
+          <Space h="xs" />
+          <Text ta="right" size="xs" c="red">
+            Royalty Percentages Exceed 100%
+          </Text>
+        </>
+      )}
     </>
   );
 }

@@ -91,8 +91,7 @@ export default function ProfilePage() {
   const [creatorRoyaltyPercentage, setCreatorRoyaltyPercentage] = useState(0);
   const [coinHolderRoyaltyPercentage, setCoinHolderRoyaltyPercentage] = useState(0);
   const [checked, setChecked] = useState(false);
-  const [buyNowPrice, setBuyNowPrice] = useState();
-  const [minBidPrice, setMinBidPrice] = useState();
+  const [price, setPrice] = useState();
   const [extraCreatorRoyalties, setExtraCreatorRoyalties] = useState({});
   const [searchResults, setSearchResults] = useState([]);
   const [value, setValue] = useState('');
@@ -364,10 +363,8 @@ export default function ProfilePage() {
           NumCopies: nftCopies,
           NFTRoyaltyToCreatorBasisPoints: convertToBasisPoints(creatorRoyaltyPercentage),
           NFTRoyaltyToCoinBasisPoints: convertToBasisPoints(coinHolderRoyaltyPercentage),
-          MinBidAmountNanos: checked
-            ? convertDESOToNanos(buyNowPrice)
-            : convertDESOToNanos(minBidPrice),
-          BuyNowPriceNanos: (checked && convertDESOToNanos(buyNowPrice)) || undefined,
+          MinBidAmountNanos: convertDESOToNanos(price),
+          BuyNowPriceNanos: (checked && convertDESOToNanos(price)) || undefined,
           IsBuyNow: checked,
           AdditionalDESORoyaltiesMap: extraCreatorRoyalties || undefined,
           HasUnlockable: false,
@@ -395,11 +392,11 @@ export default function ProfilePage() {
         setCreatorRoyaltyPercentage(0);
         setCoinHolderRoyaltyPercentage(0);
         setExtraCreatorRoyalties({});
-        setMinBidPrice();
-        if (checked && buyNowPrice) {
-          setBuyNowPrice();
-          checked(false);
-        }
+        setPrice(undefined);
+      }
+
+      if (checked) {
+        checked(false);
       }
 
       close();
@@ -733,7 +730,6 @@ export default function ProfilePage() {
                             },
                           }}
                           src={vod.mp4Url}
-                          title={`VOD #${index + 1}`}
                         />
                         <Space h="sm" />
                         <Group position="left">
@@ -744,8 +740,16 @@ export default function ProfilePage() {
                             loading={isLoadingPost}
                             disabled={
                               isLoadingPost ||
-                              (checkedNft && !minBidPrice) ||
-                              (checkedNft && checked && !buyNowPrice)
+                              (checkedNft && !price) ||
+                              creatorRoyaltyPercentage +
+                                coinHolderRoyaltyPercentage +
+                                (Object.keys(extraCreatorRoyalties).length > 0
+                                  ? Object.values(extraCreatorRoyalties).reduce(
+                                      (acc, cur) => acc + cur / 100,
+                                      0
+                                    )
+                                  : 0) >
+                                100
                             }
                             onClick={() => handleCreateVODPost(vod.mp4Url)}
                           >
@@ -775,6 +779,23 @@ export default function ProfilePage() {
                             }
                           />
                         </Group>
+
+                        {creatorRoyaltyPercentage +
+                          coinHolderRoyaltyPercentage +
+                          (Object.keys(extraCreatorRoyalties).length > 0
+                            ? Object.values(extraCreatorRoyalties).reduce(
+                                (acc, cur) => acc + cur / 100,
+                                0
+                              )
+                            : 0) >
+                          100 && (
+                          <>
+                            <Space h="xs" />
+                            <Text size="xs" c="red">
+                              Royalty Percentages Exceed 100%
+                            </Text>
+                          </>
+                        )}
 
                         {checkedNft && (
                           <>
@@ -813,11 +834,11 @@ export default function ProfilePage() {
                                   allowNegative={false}
                                   hideControls
                                   prefix="$DESO "
-                                  value={buyNowPrice}
-                                  onChange={setBuyNowPrice}
+                                  value={price}
+                                  onChange={setPrice}
                                   thousandSeparator=","
                                 />
-                                {checked && buyNowPrice && <> ≈ {convertDESOToUSD(buyNowPrice)}</>}
+                                {checked && price && <> ≈ {convertDESOToUSD(price)}</>}
                                 <Space h="xs" />
                               </>
                             ) : (
@@ -830,17 +851,11 @@ export default function ProfilePage() {
                                   allowNegative={false}
                                   hideControls
                                   prefix="$DESO "
-                                  value={minBidPrice}
-                                  onChange={setMinBidPrice}
+                                  value={price}
+                                  onChange={setPrice}
                                   thousandSeparator=","
-                                  error={
-                                    checked &&
-                                    buyNowPrice &&
-                                    minBidPrice < buyNowPrice &&
-                                    'Min Bid must be greater than or equal to Buy Now Price'
-                                  }
                                 />
-                                {minBidPrice && <> ≈ {convertDESOToUSD(minBidPrice)}</>}
+                                {price && <> ≈ {convertDESOToUSD(price)}</>}
                               </>
                             )}
 
@@ -1048,7 +1063,6 @@ export default function ProfilePage() {
                                 },
                               }}
                               src={vod.mp4Url}
-                              title={`VOD #${index + 1}`}
                             />
 
                             <Space h="xs" />

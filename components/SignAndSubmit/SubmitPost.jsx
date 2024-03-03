@@ -907,10 +907,12 @@ export const SignAndSubmitTx = ({ close }) => {
               isLoadingPost ||
               (poll && pollOptions.filter((option) => option.trim() !== '').length < 2) ||
               (checkedNft && !price) ||
-              creatorRoyaltyPercentage > 100 ||
-              coinHolderRoyaltyPercentage > 100 ||
-              (Object.keys(extraCreatorRoyalties).length > 0 &&
-                Object.values(extraCreatorRoyalties).some((percentage) => percentage > 100))
+              creatorRoyaltyPercentage +
+                coinHolderRoyaltyPercentage +
+                (Object.keys(extraCreatorRoyalties).length > 0
+                  ? Object.values(extraCreatorRoyalties).reduce((acc, cur) => acc + cur / 100, 0)
+                  : 0) >
+                100
             }
             loading={isLoadingPost}
           >
@@ -995,6 +997,20 @@ export const SignAndSubmitTx = ({ close }) => {
           }
         />
       </Group>
+
+      {creatorRoyaltyPercentage +
+        coinHolderRoyaltyPercentage +
+        (Object.keys(extraCreatorRoyalties).length > 0
+          ? Object.values(extraCreatorRoyalties).reduce((acc, cur) => acc + cur / 100, 0)
+          : 0) >
+        100 && (
+        <>
+          <Space h="xs" />
+          <Text size="xs" c="red">
+            Royalty Percentages Exceed 100%
+          </Text>
+        </>
+      )}
 
       {checkedNft && (
         <>
