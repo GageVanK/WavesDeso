@@ -147,7 +147,7 @@ export default function NotificationsPage() {
       }
       console.log(matchedNotifications);
       setNotifications(matchedNotifications);
-
+      console.log(matchedNotifications);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching user notifications:', error);
@@ -502,7 +502,7 @@ export default function NotificationsPage() {
                         {/* Mentions */}
                         {n.relatedModifiedPost?.PostExtraData?.App !== 'DesoPy' &&
                           n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
-                          n.notification.Metadata.AffectedPublicKeys[0].Metadata ===
+                          n.notification.Metadata.AffectedPublicKeys[1].Metadata ===
                             'MentionedPublicKeyBase58Check' && (
                             <>
                               <Notification
