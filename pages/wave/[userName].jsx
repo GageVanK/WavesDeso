@@ -314,7 +314,7 @@ export default function Wave() {
     }
   };
 
-  // Getting if is close friend & getting association Id so user has option to delete the association
+  // Getting if is close friend & getting association if so user has option to delete the association
   const getDidCloseFriend = async () => {
     try {
       const didCF = await getUserAssociations({
@@ -331,7 +331,7 @@ export default function Wave() {
   };
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && profile) {
       getDidCloseFriend();
     }
   }, [currentUser, isCloseFriend, profile]);
@@ -341,7 +341,7 @@ export default function Wave() {
     try {
       await createUserAssociation({
         TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
-        TargetUserPublicKeyBase58Check: profile.PublicKeyBase58Check,
+        TargetUserPublicKeyBase58Check: profile?.PublicKeyBase58Check,
         AssociationType: 'CLOSE-FRIEND',
         AssociationValue: 'CLOSE-FRIEND',
         MinFeeRateNanosPerKB: 1000,
