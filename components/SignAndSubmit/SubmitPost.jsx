@@ -949,7 +949,7 @@ export const SignAndSubmitTx = ({ close }) => {
 
         <FileButton
           onChange={setImageFile}
-          accept="image/png,image/jpeg,image/png,image.gif,image/webp"
+          accept="image/png,image/jpeg,image/png,image/gif,image/webp"
           resetRef={resetImageRef}
           type="button"
         >
