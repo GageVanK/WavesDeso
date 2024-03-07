@@ -1060,7 +1060,7 @@ export default function NotificationsPage() {
                     {/* Mentions */}
                     {n.relatedModifiedPost?.PostExtraData?.App !== 'DesoPy' &&
                       n.notification.Metadata.TxnType === 'SUBMIT_POST' &&
-                      n.notification.Metadata.AffectedPublicKeys[0].Metadata ===
+                      n.notification.Metadata.AffectedPublicKeys[1].Metadata ===
                         'MentionedPublicKeyBase58Check' && (
                         <>
                           <Notification
