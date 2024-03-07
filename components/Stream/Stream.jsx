@@ -34,6 +34,7 @@ import {
   rem,
   Divider,
   NumberInput,
+  Badge,
 } from '@mantine/core';
 import { TwitchEmbed } from 'react-twitch-embed';
 import {
@@ -530,9 +531,10 @@ export const Stream = () => {
                   </ActionIcon>
                 </HoverCard.Target>
                 <HoverCard.Dropdown>
-                  <Group>
-                    <IconRocket style={{ width: rem(15) }} stroke={1.5} />
-                    <Text size="xs">Promote your Wave by posting to DeSo.</Text>
+                  <Group gap="xs">
+                    <IconUsers style={{ width: rem(15) }} stroke={1.5} />
+                    <Badge size="xs">New</Badge>
+                    <Text size="xs">Set a Follower Goal.</Text>
                   </Group>
 
                   <Space h="xs" />
@@ -540,8 +542,8 @@ export const Stream = () => {
                   <Space h="xs" />
 
                   <Group>
-                    <IconUsers style={{ width: rem(15) }} stroke={1.5} />
-                    <Text size="xs">Set a Follower Goal.</Text>
+                    <IconRocket style={{ width: rem(15) }} stroke={1.5} />
+                    <Text size="xs">Promote your Wave by posting to DeSo.</Text>
                   </Group>
 
                   <Space h="xs" />
