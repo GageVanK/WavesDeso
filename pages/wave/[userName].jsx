@@ -650,62 +650,64 @@ export default function Wave() {
               }}
             />
 
-            <Space h="sm" />
+            <Space h="md" />
 
-            {currentUser.ProfileEntryResponse?.ExtraData?.FollowerGoal &&
-            currentUser?.ProfileEntryResponse?.ExtraData?.FollowerGoal ===
+            {profile.ExtraData?.FollowerGoal &&
+            profile.ExtraData?.FollowerGoal ===
               JSON.stringify(followerInfo.followers?.NumFollowers) ? (
               <>
-                <Text size="xs" ml={11}>
+                <Text size="xs" ta="center">
                   Follower Goal Reached!
                 </Text>
-
-                <RingProgress
-                  sections={[
-                    {
-                      value: 100,
-                      color: 'teal',
-                      tooltip: `${profile.ExtraData?.FollowerGoal} Followers`,
-                    },
-                  ]}
-                  size={144}
-                  label={
-                    <Center>
-                      <ActionIcon color="teal" variant="light" radius="xl" size="xl">
-                        <IconCheck style={{ width: rem(22), height: rem(22) }} />
-                      </ActionIcon>
-                    </Center>
-                  }
-                />
+                <Center>
+                  <RingProgress
+                    sections={[
+                      {
+                        value: 100,
+                        color: 'teal',
+                        tooltip: `${profile.ExtraData?.FollowerGoal} Followers`,
+                      },
+                    ]}
+                    size={144}
+                    label={
+                      <Center>
+                        <ActionIcon color="teal" variant="light" radius="xl" size="xl">
+                          <IconCheck style={{ width: rem(22), height: rem(22) }} />
+                        </ActionIcon>
+                      </Center>
+                    }
+                  />
+                </Center>
               </>
             ) : (
               <>
-                <Text size="xs" ml={11}>
+                <Text size="xs" ta="center">
                   Follower Goal: {profile.ExtraData?.FollowerGoal}
                 </Text>
-
-                <RingProgress
-                  size={144}
-                  roundCaps
-                  label={
-                    <Text size="sm" ta="center">
-                      {(
-                        (followerInfo.followers?.NumFollowers / profile.ExtraData?.FollowerGoal) *
-                        100
-                      ).toFixed(0)}
-                      %
-                    </Text>
-                  }
-                  sections={[
-                    {
-                      value:
-                        (followerInfo.followers?.NumFollowers / profile.ExtraData?.FollowerGoal) *
-                        100,
-                      color: 'cyan',
-                      tooltip: `${followerInfo.followers?.NumFollowers} Followers`,
-                    },
-                  ]}
-                />
+                <Center>
+                  <RingProgress
+                    size={144}
+                    roundCaps
+                    label={
+                      <Text size="sm" ta="center">
+                        {(
+                          (followerInfo.followers?.NumFollowers / profile.ExtraData?.FollowerGoal) *
+                          100
+                        ).toFixed(0)}
+                        %
+                      </Text>
+                    }
+                    sections={[
+                      {
+                        value:
+                          (followerInfo.followers?.NumFollowers / profile.ExtraData?.FollowerGoal) *
+                          100,
+                        color: 'cyan',
+                        tooltip: `${followerInfo.followers?.NumFollowers} Followers`,
+                      },
+                    ]}
+                  />
+                </Center>
               </>
             )}
 
