@@ -214,7 +214,7 @@ export const Chat = ({ handle }) => {
             <form onSubmit={handleSubmit} className="new-message-form">
               <Group gap="xs">
                 <TextInput
-                  rightSection={
+                  leftSection={
                     <>
                       {emotes && emotes.length > 0 && (
                         <>

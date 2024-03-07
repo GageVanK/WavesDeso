@@ -888,16 +888,8 @@ export default function Wave() {
                 // If no VODs, show the Badge
                 <>
                   <Space h="md" />
-                  <Center>
-                    <Badge
-                      size="md"
-                      radius="sm"
-                      variant="gradient"
-                      gradient={{ from: 'indigo', to: 'cyan', deg: 45 }}
-                    >
-                      No VODs yet!
-                    </Badge>
-                  </Center>
+
+                  <p>No VODs yet.</p>
 
                   <Space h={222} />
                 </>
