@@ -83,7 +83,6 @@ export const Chat = ({ handle }) => {
     try {
       setIsLoadingEmotes(true);
       const res = await getPostAssociations({
-        TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
         AssociationType: 'EMOTE',
         AssociationValue: `${handle}'s Emote`,
       });

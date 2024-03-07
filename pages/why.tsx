@@ -59,7 +59,15 @@ export default function Why() {
                     </Fade>
                     <Space h="xs" />
                     <Fade>
-                      <List.Item>Onchain Emotes</List.Item>
+                      <List.Item
+                        icon={
+                          <ThemeIcon color="teal" size={24} radius="xl">
+                            <IconCircleCheck style={{ width: rem(16), height: rem(16) }} />
+                          </ThemeIcon>
+                        }
+                      >
+                        Onchain Emotes
+                      </List.Item>
                     </Fade>
                     <Space h="xs" />
                     <Fade>
@@ -67,7 +75,15 @@ export default function Why() {
                     </Fade>
                     <Space h="xs" />
                     <Fade>
-                      <List.Item>Follower Goals</List.Item>
+                      <List.Item
+                        icon={
+                          <ThemeIcon color="teal" size={24} radius="xl">
+                            <IconCircleCheck style={{ width: rem(16), height: rem(16) }} />
+                          </ThemeIcon>
+                        }
+                      >
+                        Follower Goals
+                      </List.Item>
                     </Fade>
                     <Space h="xs" />
                     <Fade>
