@@ -37,6 +37,7 @@ export const Chat = ({ handle }) => {
   const messagesRef = collection(db, 'messages');
   const { currentUser } = useContext(DeSoIdentityContext);
   const [isLoadingEmotes, setIsLoadingEmotes] = useState(false);
+  const [opened, setOpened] = useState(false);
   const [emotes, setEmotes] = useState();
   const viewport = useRef(null);
 
@@ -115,6 +116,8 @@ export const Chat = ({ handle }) => {
           null,
         room: handle,
       });
+
+      setOpened(false);
     } catch (error) {
       console.error('Error sending emote:', error);
     }
@@ -215,7 +218,7 @@ export const Chat = ({ handle }) => {
                     <>
                       {emotes && emotes.length > 0 && (
                         <>
-                          <Menu shadow="md" width={222}>
+                          <Menu shadow="md" width={222} opened={opened} onChange={setOpened}>
                             <Menu.Target>
                               <ActionIcon radius="xl" type="button">
                                 <GrEmoji />
