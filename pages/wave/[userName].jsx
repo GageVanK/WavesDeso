@@ -23,6 +23,7 @@ import {
   createUserAssociation,
   deleteUserAssociation,
   getUserAssociations,
+  getPostAssociations,
 } from 'deso-protocol';
 import {
   Container,
@@ -46,6 +47,7 @@ import {
   Loader,
   Collapse,
   rem,
+  RingProgress,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { DeSoIdentityContext } from 'react-deso-protocol';
@@ -79,10 +81,12 @@ export default function Wave() {
   const [openedChat, { toggle }] = useDisclosure(true);
   const [pinnedPost, setPinnedPost] = useState();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isLoadingVODs, setIsLoadingVODs] = useState(false);
   const [lastSeenPostHash, setLastSeenPostHash] = useState();
   const [streamPlaybackId, setStreamPlaybackId] = useState();
   const [isCloseFriend, setIsCloseFriend] = useState(false);
   const [didCloseFriendId, setCloseFriendId] = useState();
+  const [VODs, setVODs] = useState();
   const embed = useRef();
 
   // For Twitch Embed
@@ -397,6 +401,33 @@ export default function Wave() {
     }
   };
 
+  // Get Public VODs for user
+  const getVODs = async () => {
+    try {
+      setIsLoadingVODs(true);
+      const res = await getPostAssociations({
+        TransactorPublicKeyBase58Check: profile?.PublicKeyBase58Check,
+        AssociationType: 'Wave VOD',
+        AssociationValue: `${profile?.Username}'s VOD`,
+      });
+
+      const newVODs = [];
+
+      for (const association of res.Associations) {
+        const postHash = association.PostHashHex;
+        const response = await getSinglePost({ PostHashHex: postHash });
+
+        newVODs.push(response.PostFound);
+      }
+
+      setVODs(newVODs);
+      setIsLoadingVODs(false);
+    } catch (error) {
+      console.error('Error getting VODs:', error);
+      setIsLoadingVODs(false);
+    }
+  };
+
   // Fetch profile for username
   useEffect(() => {
     if (userName) {
@@ -411,6 +442,7 @@ export default function Wave() {
       fetchFollowerInfo();
       fetchPosts();
       fetchStream();
+      getVODs();
     }
   }, [profile, profile?.PublicKeyBase58Check]);
 
@@ -620,6 +652,63 @@ export default function Wave() {
 
             <Space h="sm" />
 
+            {currentUser.ProfileEntryResponse?.ExtraData?.FollowerGoal &&
+            currentUser?.ProfileEntryResponse?.ExtraData?.FollowerGoal ===
+              JSON.stringify(followerInfo.followers?.NumFollowers) ? (
+              <>
+                <Text size="xs" ml={11}>
+                  Follower Goal Reached!
+                </Text>
+
+                <RingProgress
+                  sections={[
+                    {
+                      value: 100,
+                      color: 'teal',
+                      tooltip: `${profile.ExtraData?.FollowerGoal} Followers`,
+                    },
+                  ]}
+                  size={144}
+                  label={
+                    <Center>
+                      <ActionIcon color="teal" variant="light" radius="xl" size="xl">
+                        <IconCheck style={{ width: rem(22), height: rem(22) }} />
+                      </ActionIcon>
+                    </Center>
+                  }
+                />
+              </>
+            ) : (
+              <>
+                <Text size="xs" ml={11}>
+                  Follower Goal: {profile.ExtraData?.FollowerGoal}
+                </Text>
+
+                <RingProgress
+                  size={144}
+                  roundCaps
+                  label={
+                    <Text size="sm" ta="center">
+                      {(
+                        (followerInfo.followers?.NumFollowers / profile.ExtraData?.FollowerGoal) *
+                        100
+                      ).toFixed(0)}
+                      %
+                    </Text>
+                  }
+                  sections={[
+                    {
+                      value:
+                        (followerInfo.followers?.NumFollowers / profile.ExtraData?.FollowerGoal) *
+                        100,
+                      color: 'cyan',
+                      tooltip: `${followerInfo.followers?.NumFollowers} Followers`,
+                    },
+                  ]}
+                />
+              </>
+            )}
+
             <Center>
               {followerInfo.followers && followerInfo.followers.NumFollowers ? (
                 <Text fz="sm">Followers: {followerInfo.followers.NumFollowers}</Text>
@@ -702,6 +791,10 @@ export default function Wave() {
               <Tabs.Tab value="second">
                 <Text fz="sm">NFTs</Text>
               </Tabs.Tab>
+
+              <Tabs.Tab value="third">
+                <Text fz="sm">VODs</Text>
+              </Tabs.Tab>
             </Tabs.List>
 
             <Tabs.Panel value="first">
@@ -766,6 +859,46 @@ export default function Wave() {
               <Space h={222} />
             </Tabs.Panel>
 
+            <Tabs.Panel value="third">
+              {isLoadingVODs ? (
+                <>
+                  <Space h="md" />
+                  <Center>
+                    <Loader variant="bars" />
+                  </Center>
+                </>
+              ) : // After loading, check if there are VODs to display
+              VODs && VODs.length > 0 ? (
+                VODs.map((vod, index) => {
+                  return (
+                    <>
+                      <div key={index}>
+                        <Post post={vod} username={profile?.Username} />
+                      </div>
+                      <Space h="xs" />
+                    </>
+                  );
+                })
+              ) : (
+                // If no VODs, show the Badge
+                <>
+                  <Space h="md" />
+                  <Center>
+                    <Badge
+                      size="md"
+                      radius="sm"
+                      variant="gradient"
+                      gradient={{ from: 'indigo', to: 'cyan', deg: 45 }}
+                    >
+                      No VODs yet!
+                    </Badge>
+                  </Center>
+
+                  <Space h={222} />
+                </>
+              )}
+            </Tabs.Panel>
+
             <Tabs.Panel value="second">
               {isLoadingNFTs ? (
                 <>
@@ -801,6 +934,8 @@ export default function Wave() {
                       Mint something to view them here!
                     </Badge>
                   </Center>
+
+                  <Space h={222} />
                 </>
               )}
             </Tabs.Panel>

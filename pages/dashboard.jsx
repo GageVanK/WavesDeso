@@ -29,6 +29,7 @@ import {
   Stack,
   UnstyledButton,
   Box,
+  RingProgress,
 } from '@mantine/core';
 import { GiWaveCrest } from 'react-icons/gi';
 import { TbPinned, TbDownload } from 'react-icons/tb';
@@ -413,6 +414,7 @@ export default function ProfilePage() {
       getNFTs();
       getBookmarkPosts();
       fetchStreamId();
+      console.log(currentUser);
     }
 
     // Get pinned post
@@ -485,7 +487,6 @@ export default function ProfilePage() {
                 <Space w={1} />
               </Group>
             </Group>
-
             <Space h="md" />
             {currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL && (
               <Group grow>
@@ -500,7 +501,6 @@ export default function ProfilePage() {
               </Group>
             )}
             <Space h="sm" />
-
             {currentUser.ProfileEntryResponse === null ? (
               <>
                 <Divider my="sm" />
@@ -524,7 +524,6 @@ export default function ProfilePage() {
               </>
             )}
             <Space h={55} />
-
             <Text
               fz="sm"
               style={{
@@ -541,8 +540,67 @@ export default function ProfilePage() {
                   : '',
               }}
             />
-
             <Space h="sm" />
+            {currentUser.ProfileEntryResponse?.ExtraData?.FollowerGoal &&
+            currentUser?.ProfileEntryResponse?.ExtraData?.FollowerGoal ===
+              JSON.stringify(followerInfo.followers?.NumFollowers) ? (
+              <>
+                <Text size="xs" ta="center">
+                  Follower Goal Reached!
+                </Text>
+                <Center>
+                  <RingProgress
+                    sections={[
+                      {
+                        value: 100,
+                        color: 'teal',
+                        tooltip: `${currentUser?.ProfileEntryResponse?.ExtraData?.FollowerGoal} Followers`,
+                      },
+                    ]}
+                    size={144}
+                    label={
+                      <Center>
+                        <ActionIcon color="teal" variant="light" radius="xl" size="xl">
+                          <IconCheck style={{ width: rem(22), height: rem(22) }} />
+                        </ActionIcon>
+                      </Center>
+                    }
+                  />
+                </Center>
+              </>
+            ) : (
+              <>
+                <Text size="xs" ta="center">
+                  Follower Goal: {currentUser?.ProfileEntryResponse?.ExtraData?.FollowerGoal}
+                </Text>
+                <Center>
+                  <RingProgress
+                    size={144}
+                    roundCaps
+                    label={
+                      <Text size="sm" ta="center">
+                        {(
+                          (followerInfo.followers?.NumFollowers /
+                            currentUser?.ProfileEntryResponse?.ExtraData?.FollowerGoal) *
+                          100
+                        ).toFixed(0)}
+                        %
+                      </Text>
+                    }
+                    sections={[
+                      {
+                        value:
+                          (followerInfo.followers?.NumFollowers /
+                            currentUser?.ProfileEntryResponse?.ExtraData?.FollowerGoal) *
+                          100,
+                        color: 'cyan',
+                        tooltip: `${followerInfo.followers?.NumFollowers} Followers`,
+                      },
+                    ]}
+                  />
+                </Center>
+              </>
+            )}
 
             <Center>
               {followerInfo.followers && followerInfo.followers.NumFollowers ? (

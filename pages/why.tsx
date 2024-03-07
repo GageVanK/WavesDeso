@@ -51,35 +51,35 @@ export default function Why() {
                     }
                   >
                     <Fade>
-                      <List.Item>Notification UI Rework</List.Item>
+                      <List.Item>Clips (Ez posting/minting)</List.Item>
                     </Fade>
                     <Space h="xs" />
                     <Fade>
-                      <List.Item>NFT Post + Clips</List.Item>
+                      <List.Item>Broader NFT Support (Buying, Bidding, Claiming)</List.Item>
                     </Fade>
                     <Space h="xs" />
                     <Fade>
-                      <List.Item>Hide + Edit + Pin + Bookmark Posts</List.Item>
+                      <List.Item>Onchain Emotes</List.Item>
                     </Fade>
                     <Space h="xs" />
                     <Fade>
-                      <List.Item>Follower + Earnings + Subscriber Goals</List.Item>
+                      <List.Item>Muting/Blocking + Block Lists</List.Item>
                     </Fade>
                     <Space h="xs" />
                     <Fade>
-                      <List.Item>Feed Surf</List.Item>
+                      <List.Item>Follower Goals</List.Item>
                     </Fade>
                     <Space h="xs" />
                     <Fade>
-                      <List.Item>Subscription Enhancements</List.Item>
+                      <List.Item>Feed Surfing</List.Item>
                     </Fade>
                     <Space h="xs" />
                     <Fade>
-                      <List.Item>Migrate Chat to DCP</List.Item>
+                      <List.Item>Bot Prevention</List.Item>
                     </Fade>
                     <Space h="xs" />
                     <Fade>
-                      <List.Item>Openfund Launch</List.Item>
+                      <List.Item>Stream Gating</List.Item>
                     </Fade>
                     <Space h="xs" />
                     <Fade>
@@ -88,6 +88,18 @@ export default function Why() {
                     <Space h="xs" />
                     <Fade>
                       <List.Item>Much More!</List.Item>
+                    </Fade>
+                    <Space h="xs" />
+                    <Fade>
+                      <List.Item>Community Outreach + Feature Sets</List.Item>
+                    </Fade>
+                    <Space h="xs" />
+                    <Fade>
+                      <List.Item>Openfund Launch</List.Item>
+                    </Fade>
+                    <Space h="xs" />
+                    <Fade>
+                      <List.Item>Creator Fund</List.Item>
                     </Fade>
                   </List>
                 </Paper>

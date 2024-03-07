@@ -10,7 +10,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
 import { useState, useContext, useEffect, useRef, useCallback, useMemo } from 'react';
-import { updateProfile, submitPost } from 'deso-protocol';
+import { updateProfile, submitPost, getFollowersForUser } from 'deso-protocol';
 import {
   Input,
   Paper,
@@ -33,6 +33,7 @@ import {
   Switch,
   rem,
   Divider,
+  NumberInput,
 } from '@mantine/core';
 import { TwitchEmbed } from 'react-twitch-embed';
 import {
@@ -44,6 +45,7 @@ import {
   IconLink,
   IconPencil,
   IconQuestionMark,
+  IconUsers,
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { RiYoutubeLine } from 'react-icons/ri';
@@ -60,6 +62,10 @@ import { db } from '../../firebase-config';
 export const Stream = () => {
   const { currentUser } = useContext(DeSoIdentityContext);
   const [opened, { open, close }] = useDisclosure(false);
+  const [openedFollowerGoal, { open: openFollowerGoal, close: closeFollowerGoal }] =
+    useDisclosure(false);
+  const [followerGoal, setFollowerGoal] = useState();
+  const [followerCount, setFollowerCount] = useState(1);
   const embed = useRef();
   const [streamId, setStreamId] = useState();
   const [streamPlaybackId, setStreamPlaybackId] = useState();
@@ -381,10 +387,54 @@ export const Stream = () => {
 
   */
 
+  // Set Follow Goal
+  const getFollowers = async () => {
+    try {
+      const followers = await getFollowersForUser({
+        PublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        GetEntriesFollowingUsername: true,
+      });
+
+      setFollowerCount(followers.NumFollowers);
+    } catch (error) {
+      console.error('Error fetching follower data:', error);
+    }
+  };
+
+  // Set Follow Goal
+  const handleFollowerGoal = async () => {
+    try {
+      await updateProfile({
+        UpdaterPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        ProfilePublicKeyBase58Check: '',
+        NewUsername: '',
+        MinFeeRateNanosPerKB: 1000,
+        NewCreatorBasisPoints: 100,
+        NewDescription: '',
+        NewStakeMultipleBasisPoints: 12500,
+        ExtraData: {
+          FollowerGoal: JSON.stringify(followerCount + followerGoal),
+        },
+      });
+
+      notifications.show({
+        title: 'Success',
+        icon: <IconCheck size="1.1rem" />,
+        color: 'green',
+        message: 'Follower Goal Set!',
+      });
+
+      closeFollowerGoal();
+    } catch (error) {
+      console.error('Error fetching follower data:', error);
+    }
+  };
+
   // Fetch Stream Info on mount or when user changes
   useEffect(() => {
     if (currentUser.ProfileEntryResponse.Username) {
       fetchStream();
+      getFollowers();
     }
   }, [currentUser, currentUser.ProfileEntryResponse?.Username]);
 
@@ -431,6 +481,28 @@ export const Stream = () => {
         </Group>
       </Modal>
 
+      <Modal opened={openedFollowerGoal} onClose={closeFollowerGoal} centered title="Follower Goal">
+        <NumberInput
+          variant="filled"
+          description="Set your Follower Goal"
+          min={1}
+          defaultValue={1}
+          allowDecimal={false}
+          allowNegative={false}
+          thousandSeparator=","
+          value={followerGoal}
+          onChange={setFollowerGoal}
+        />
+
+        <Space h="md" />
+
+        <Group justify="right">
+          <Button size="xs" onClick={handleFollowerGoal}>
+            Set Goal
+          </Button>
+        </Group>
+      </Modal>
+
       {streamId && (
         <>
           <Group>
@@ -461,6 +533,15 @@ export const Stream = () => {
                   <Group>
                     <IconRocket style={{ width: rem(15) }} stroke={1.5} />
                     <Text size="xs">Promote your Wave by posting to DeSo.</Text>
+                  </Group>
+
+                  <Space h="xs" />
+                  <Divider />
+                  <Space h="xs" />
+
+                  <Group>
+                    <IconUsers style={{ width: rem(15) }} stroke={1.5} />
+                    <Text size="xs">Set a Follower Goal.</Text>
                   </Group>
 
                   <Space h="xs" />
@@ -500,6 +581,17 @@ export const Stream = () => {
                   </Group>
                 </HoverCard.Dropdown>
               </HoverCard>
+
+              <Tooltip label="Set Follower Goal">
+                <ActionIcon
+                  onClick={openFollowerGoal}
+                  variant="default"
+                  size="xl"
+                  aria-label="Follower Goal"
+                >
+                  <IconUsers style={{ width: rem(20) }} stroke={1.5} />
+                </ActionIcon>
+              </Tooltip>
 
               <Tooltip label="Promote Wave Onchain">
                 <ActionIcon
@@ -615,172 +707,175 @@ export const Stream = () => {
 
           <Space h="md" />
 
-          <Container w="100%">
-            <Stack>
-              <Group>
-                <Text fw={666} fz="lg">
-                  Multistream
-                </Text>
+          <Container w="77%">
+            <Paper withBorder radius="md" p="md">
+              <Stack>
+                <Group>
+                  <Text fw={666} fz="lg">
+                    Multistream
+                  </Text>
 
-                <HoverCard width={280} closeDelay={700} shadow="md">
-                  <HoverCard.Target>
-                    <ActionIcon radius="xl" size="sm" variant="outline">
-                      <TiInfoLargeOutline />
-                    </ActionIcon>
-                  </HoverCard.Target>
-                  <HoverCard.Dropdown>
-                    <Text fw={500} size="xs">
-                      Broadcast your Stream to multiple platforms with Multistreaming!
-                    </Text>
-                    <Space h="xs" />
-                    <Text fw={500} size="xs">
-                      Just paste in the necessary information and click the Launch button.
-                    </Text>
-                    <Space h="xs" />
-                    <Text fw={500} size="xs">
-                      It is recommended to have separate tabs open of your Multistreams to ensure
-                      everything is working!
-                    </Text>
-                    <Space h="xs" />
-                    <Text fw={500} size="xs">
-                      Be sure to set the Stream Title, Category, etc in the apps you are
-                      multistreaming to.
-                    </Text>
-                  </HoverCard.Dropdown>
-                </HoverCard>
-              </Group>
+                  <HoverCard width={280} closeDelay={700} shadow="md">
+                    <HoverCard.Target>
+                      <ActionIcon radius="xl" size="sm" variant="outline">
+                        <TiInfoLargeOutline />
+                      </ActionIcon>
+                    </HoverCard.Target>
+                    <HoverCard.Dropdown>
+                      <Text fw={500} size="xs">
+                        Broadcast your Stream to multiple platforms with Multistreaming!
+                      </Text>
+                      <Space h="xs" />
+                      <Text fw={500} size="xs">
+                        Just paste in the necessary information and click the Launch button.
+                      </Text>
+                      <Space h="xs" />
+                      <Text fw={500} size="xs">
+                        It is recommended to have separate tabs open of your Multistreams to ensure
+                        everything is working!
+                      </Text>
+                      <Space h="xs" />
+                      <Text fw={500} size="xs">
+                        Be sure to set the Stream Title, Category, etc in the apps you are
+                        multistreaming to.
+                      </Text>
+                    </HoverCard.Dropdown>
+                  </HoverCard>
+                </Group>
 
-              <Accordion variant="separated" radius="md">
-                <Accordion.Item value="Twitch">
-                  <Accordion.Control
-                    icon={<BsTwitch size={'1.5rem'} color={'rgba(145, 70, 255)'} />}
-                  >
-                    <Text c="dimmed" fw={500}>
-                      Twitch
-                    </Text>
-                  </Accordion.Control>
-                  <Accordion.Panel>
-                    {!currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL && (
+                <Accordion variant="separated" radius="md">
+                  <Accordion.Item value="Twitch">
+                    <Accordion.Control
+                      icon={<BsTwitch size={'1.5rem'} color={'rgba(145, 70, 255)'} />}
+                    >
+                      <Text c="dimmed" fw={500}>
+                        Twitch
+                      </Text>
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                      {!currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL && (
+                        <Input
+                          icon={<BiUserCircle />}
+                          placeholder="Enter Your Twitch Username"
+                          radius="md"
+                          value={twitchInput}
+                          onChange={(e) => setTwitchInput(e.target.value)}
+                        />
+                      )}
+
+                      <Space h="md" />
+                      <PasswordInput
+                        icon={<VscKey />}
+                        placeholder="Enter Your Twitch Stream Key"
+                        radius="md"
+                        value={twitchStreamKey}
+                        onChange={(e) => setTwitchStreamKey(e.target.value)}
+                      />
+                      <Space h="md" />
+                      <Group justify="right">
+                        <Button
+                          rightSection={<IconRocket size="1rem" />}
+                          variant="light"
+                          size="xs"
+                          onClick={handleEnableTwitchMultistream}
+                          disabled={
+                            !twitchStreamKey ||
+                            (!twitchInput &&
+                              !currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL)
+                          }
+                        >
+                          Launch
+                        </Button>
+                        {error && <div>{error.message}</div>}
+                      </Group>
+
+                      {twitchInput && !currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL && (
+                        <>
+                          <Space h="md" />
+                          <Group grow>
+                            <TwitchEmbed channel={twitchInput} muted onReady={handleReady} />
+                          </Group>
+                        </>
+                      )}
+                    </Accordion.Panel>
+                  </Accordion.Item>
+
+                  <Accordion.Item value="Youtube">
+                    <Accordion.Control icon={<RiYoutubeLine size={'1.5rem'} color="red" />}>
+                      <Text c="dimmed" fw={500}>
+                        Youtube
+                      </Text>
+                    </Accordion.Control>
+                    <Accordion.Panel>
                       <Input
                         icon={<BiUserCircle />}
-                        placeholder="Enter Your Twitch Username"
+                        placeholder="Enter Your Youtube Stream URL"
                         radius="md"
-                        value={twitchInput}
-                        onChange={(e) => setTwitchInput(e.target.value)}
+                        value={ytStreamURL}
+                        onChange={(e) => setYTStreamURL(e.target.value)}
                       />
-                    )}
+                      <Space h="md" />
+                      <PasswordInput
+                        icon={<AiOutlineLink />}
+                        placeholder="Enter Your Youtube Stream Key"
+                        radius="md"
+                        value={ytStreamKey}
+                        onChange={(e) => setYTStreamKey(e.target.value)}
+                      />
+                      <Space h="md" />
+                      <Group justify="right">
+                        <Button
+                          rightSection={<IconRocket size="1rem" />}
+                          variant="light"
+                          size="xs"
+                          onClick={handleEnableYTMultistream}
+                        >
+                          Launch
+                        </Button>
+                        {ytmulti && <div>{ytmulti.message}</div>}
+                      </Group>
+                    </Accordion.Panel>
+                  </Accordion.Item>
 
-                    <Space h="md" />
-                    <PasswordInput
-                      icon={<VscKey />}
-                      placeholder="Enter Your Twitch Stream Key"
-                      radius="md"
-                      value={twitchStreamKey}
-                      onChange={(e) => setTwitchStreamKey(e.target.value)}
-                    />
-                    <Space h="md" />
-                    <Group justify="right">
-                      <Button
-                        rightSection={<IconRocket size="1rem" />}
-                        variant="light"
-                        size="xs"
-                        onClick={handleEnableTwitchMultistream}
-                        disabled={
-                          !twitchStreamKey ||
-                          (!twitchInput && !currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL)
-                        }
-                      >
-                        Launch
-                      </Button>
-                      {error && <div>{error.message}</div>}
-                    </Group>
-
-                    {twitchInput && !currentUser.ProfileEntryResponse?.ExtraData?.TwitchURL && (
-                      <>
-                        <Space h="md" />
-                        <Group grow>
-                          <TwitchEmbed channel={twitchInput} muted onReady={handleReady} />
-                        </Group>
-                      </>
-                    )}
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                <Accordion.Item value="Youtube">
-                  <Accordion.Control icon={<RiYoutubeLine size={'1.5rem'} color="red" />}>
-                    <Text c="dimmed" fw={500}>
-                      Youtube
-                    </Text>
-                  </Accordion.Control>
-                  <Accordion.Panel>
-                    <Input
-                      icon={<BiUserCircle />}
-                      placeholder="Enter Your Youtube Stream URL"
-                      radius="md"
-                      value={ytStreamURL}
-                      onChange={(e) => setYTStreamURL(e.target.value)}
-                    />
-                    <Space h="md" />
-                    <PasswordInput
-                      icon={<AiOutlineLink />}
-                      placeholder="Enter Your Youtube Stream Key"
-                      radius="md"
-                      value={ytStreamKey}
-                      onChange={(e) => setYTStreamKey(e.target.value)}
-                    />
-                    <Space h="md" />
-                    <Group justify="right">
-                      <Button
-                        rightSection={<IconRocket size="1rem" />}
-                        variant="light"
-                        size="xs"
-                        onClick={handleEnableYTMultistream}
-                      >
-                        Launch
-                      </Button>
-                      {ytmulti && <div>{ytmulti.message}</div>}
-                    </Group>
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                <Accordion.Item value="Kick">
-                  <Accordion.Control icon={<RiKickLine size={'1.5rem'} color="green" />}>
-                    {' '}
-                    <Text c="dimmed" fw={500}>
-                      Kick
-                    </Text>
-                  </Accordion.Control>
-                  <Accordion.Panel>
-                    <Input
-                      icon={<AiOutlineLink />}
-                      placeholder="Enter Kick Stream URL"
-                      radius="md"
-                      value={kickStreamURL}
-                      onChange={(e) => setKickStreamURL(e.target.value)}
-                    />
-                    <Space h="md" />
-                    <PasswordInput
-                      icon={<VscKey />}
-                      placeholder="Enter Kick Stream Key"
-                      radius="md"
-                      value={kickStreamKey}
-                      onChange={(e) => setKickStreamKey(e.target.value)}
-                    />{' '}
-                    <Space h="md" />
-                    <Group justify="right">
-                      <Button
-                        onClick={handleEnableKickMultistream}
-                        rightSection={<IconRocket size="1rem" />}
-                        variant="light"
-                        size="xs"
-                      >
-                        Launch
-                      </Button>
-                    </Group>
-                  </Accordion.Panel>
-                </Accordion.Item>
-              </Accordion>
-            </Stack>
+                  <Accordion.Item value="Kick">
+                    <Accordion.Control icon={<RiKickLine size={'1.5rem'} color="green" />}>
+                      {' '}
+                      <Text c="dimmed" fw={500}>
+                        Kick
+                      </Text>
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                      <Input
+                        icon={<AiOutlineLink />}
+                        placeholder="Enter Kick Stream URL"
+                        radius="md"
+                        value={kickStreamURL}
+                        onChange={(e) => setKickStreamURL(e.target.value)}
+                      />
+                      <Space h="md" />
+                      <PasswordInput
+                        icon={<VscKey />}
+                        placeholder="Enter Kick Stream Key"
+                        radius="md"
+                        value={kickStreamKey}
+                        onChange={(e) => setKickStreamKey(e.target.value)}
+                      />{' '}
+                      <Space h="md" />
+                      <Group justify="right">
+                        <Button
+                          onClick={handleEnableKickMultistream}
+                          rightSection={<IconRocket size="1rem" />}
+                          variant="light"
+                          size="xs"
+                        >
+                          Launch
+                        </Button>
+                      </Group>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                </Accordion>
+              </Stack>
+            </Paper>
           </Container>
         </>
       )}
