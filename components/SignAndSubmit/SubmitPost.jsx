@@ -7,6 +7,7 @@ import {
   getProfiles,
   getAppState,
   createNFT,
+  createPostAssociation,
 } from 'deso-protocol';
 import React, { useContext, useRef, useState, useEffect, useMemo } from 'react';
 import { RiImageAddFill } from 'react-icons/ri';
@@ -77,6 +78,7 @@ export const SignAndSubmitTx = ({ close }) => {
   const [checkedNft, setCheckedNft] = useState(false);
   const [uploadInitiated, setUploadInitiated] = useState(false);
   const [checkedAutoPost, setCheckedAutoPost] = useState(false);
+  const [emote, setEmote] = useState(false);
   const theme = useMantineTheme();
   // NFT Stuff
   const [nftCopies, setNftCopies] = useState(1);
@@ -387,6 +389,16 @@ export const SignAndSubmitTx = ({ close }) => {
         await createNFT(request);
       }
 
+      if (emote && resp?.submittedTransactionResponse?.PostEntryResponse) {
+        await createPostAssociation({
+          TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+          PostHashHex: resp?.submittedTransactionResponse?.PostEntryResponse?.PostHashHex,
+          AssociationType: 'EMOTE',
+          AssociationValue: `${currentUser.ProfileEntryResponse?.Username}'s Emote`,
+          MinFeeRateNanosPerKB: 1000,
+        });
+      }
+
       setIsLoadingPost(false);
 
       notifications.show({
@@ -431,6 +443,10 @@ export const SignAndSubmitTx = ({ close }) => {
 
       if (checked) {
         checked(false);
+      }
+
+      if (emote) {
+        setEmote(false);
       }
 
       if (typeof close === 'function') {
@@ -677,18 +693,29 @@ export const SignAndSubmitTx = ({ close }) => {
       <Space h="sm" />
       {imageURL && (
         <div>
-          <ActionIcon
-            type="button"
-            onClick={() => {
-              setImageURL('');
-              setImageFile(null);
-              resetImageRef.current?.();
-            }}
-            size="xs"
-            color="red"
-          >
-            <IconX />
-          </ActionIcon>
+          <Group justify="space-between">
+            <ActionIcon
+              type="button"
+              onClick={() => {
+                setImageURL('');
+                setImageFile(null);
+                resetImageRef.current?.();
+              }}
+              size="xs"
+              color="red"
+            >
+              <IconX />
+            </ActionIcon>
+
+            <Checkbox
+              checked={emote}
+              onChange={(event) => setEmote(event.currentTarget.checked)}
+              label="Post as Emote"
+              size="xs"
+              radius="xl"
+            />
+          </Group>
+          <Space h="xs" />
           <Image src={imageURL} alt="Uploaded" maw={240} mx="auto" radius="md" />
         </div>
       )}
@@ -903,7 +930,7 @@ export const SignAndSubmitTx = ({ close }) => {
             raduis="sm"
             onClick={handleCreatePost}
             disabled={
-              !bodyText.trim() ||
+              (!emote && !bodyText.trim()) ||
               isLoadingPost ||
               (poll && pollOptions.filter((option) => option.trim() !== '').length < 2) ||
               (checkedNft && !price) ||

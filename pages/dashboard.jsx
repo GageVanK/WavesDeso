@@ -79,9 +79,11 @@ export default function ProfilePage() {
   const [followerInfo, setFollowers] = useState({ followers: 0, following: 0 });
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [isLoadingNFTs, setIsLoadingNFTs] = useState(false);
+  const [isLoadingEmotes, setIsLoadingEmotes] = useState(false);
   const [openedChat, { toggle }] = useDisclosure(true);
   const [pinnedPost, setPinnedPost] = useState();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isLoadingBookmarks, setIsLoadingBookmarks] = useState(false);
   const [lastSeenPostHash, setLastSeenPostHash] = useState();
   const [streamId, setStreamId] = useState();
   const [opened, { open, close }] = useDisclosure(false);
@@ -96,6 +98,7 @@ export default function ProfilePage() {
   const [extraCreatorRoyalties, setExtraCreatorRoyalties] = useState({});
   const [searchResults, setSearchResults] = useState([]);
   const [value, setValue] = useState('');
+  const [emotes, setEmotes] = useState();
   const [desoUSD, setDesoUSD] = useState();
   const embed = useRef();
 
@@ -190,8 +193,9 @@ export default function ProfilePage() {
   };
 
   // Get Bookmarked Posts
-  const getBookmarkPosts = async () => {
+  const getBookmarks = async () => {
     try {
+      setIsLoadingBookmarks(true);
       const res = await getPostAssociations({
         TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
         AssociationType: 'BOOKMARK',
@@ -208,7 +212,9 @@ export default function ProfilePage() {
       }
 
       setBookmarks(newBookmarks);
+      setIsLoadingBookmarks(false);
     } catch (error) {
+      setIsLoadingBookmarks(false);
       console.error('Error submitting heart:', error);
     }
   };
@@ -225,7 +231,7 @@ export default function ProfilePage() {
     }
   };
 
-  // Fetching VODs
+  // Fetch VODs
   const { data: streamSessions } = useStreamSessions({ streamId });
 
   // Get Deso USD Value for Conversion/UI during minting
@@ -406,15 +412,42 @@ export default function ProfilePage() {
     }
   };
 
+  // Get Emotes for user
+  const getEmotes = async () => {
+    try {
+      setIsLoadingEmotes(true);
+      const res = await getPostAssociations({
+        TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        AssociationType: 'EMOTE',
+        AssociationValue: `${currentUser?.ProfileEntryResponse?.Username}'s Emote`,
+      });
+
+      const newEmotes = [];
+
+      for (const association of res.Associations) {
+        const postHash = association.PostHashHex;
+        const response = await getSinglePost({ PostHashHex: postHash });
+
+        newEmotes.push(response.PostFound);
+      }
+
+      setEmotes(newEmotes);
+      setIsLoadingEmotes(false);
+    } catch (error) {
+      console.error('Error getting Emotes:', error);
+      setIsLoadingEmotes(false);
+    }
+  };
+
   // On mount or when current user changes call functions
   useEffect(() => {
     if (currentUser) {
       getFollowers();
       getPosts();
       getNFTs();
-      getBookmarkPosts();
+      getBookmarks();
       fetchStreamId();
-      console.log(currentUser);
+      getEmotes();
     }
 
     // Get pinned post
@@ -651,6 +684,10 @@ export default function ProfilePage() {
               </Tabs.Tab>
 
               <Tabs.Tab value="fourth">
+                <Text fz="sm">Emotes</Text>
+              </Tabs.Tab>
+
+              <Tabs.Tab value="fifth">
                 <MdBookmarks size="1.3rem" />
               </Tabs.Tab>
             </Tabs.List>
@@ -1136,17 +1173,55 @@ export default function ProfilePage() {
             </Tabs.Panel>
 
             <Tabs.Panel value="fourth">
-              <>
-                {bookmarks?.length === 0 ? (
+              {isLoadingEmotes ? (
+                <>
+                  <Space h="md" />
+                  <Center>
+                    <Loader variant="bars" />
+                  </Center>
+                </>
+              ) : emotes && emotes.length > 0 ? (
+                emotes.map((emote, index) => {
+                  return (
+                    <>
+                      <div key={index}>
+                        <Post post={emote} username={currentUser?.ProfileEntryResponse?.Username} />
+                      </div>
+                    </>
+                  );
+                })
+              ) : (
+                // No Emotes
+                <>
+                  <Space h="md" />
+                  <p>No Emotes Yet.</p>
+                  <Space h={222} />
+                </>
+              )}
+            </Tabs.Panel>
+
+            <Tabs.Panel value="fifth">
+              {isLoadingBookmarks ? (
+                <>
+                  <Space h="md" />
+                  <Center>
+                    <Loader variant="bars" />
+                  </Center>
+                </>
+              ) : bookmarks && bookmarks.length > 0 ? (
+                bookmarks.map((bookmark, index) => (
+                  <div key={index}>
+                    <Post post={bookmark} username={bookmark.ProfileEntryResponse.Username} />
+                  </div>
+                ))
+              ) : (
+                // No Emotes
+                <>
+                  <Space h="md" />
                   <p>No bookmarks found</p>
-                ) : (
-                  bookmarks.map((bookmark, index) => (
-                    <div key={index}>
-                      <Post post={bookmark} username={bookmark.ProfileEntryResponse.Username} />
-                    </div>
-                  ))
-                )}
-              </>
+                  <Space h={222} />
+                </>
+              )}
             </Tabs.Panel>
           </Tabs>
           <Space h={222} />

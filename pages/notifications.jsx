@@ -145,9 +145,8 @@ export default function NotificationsPage() {
           }
         });
       }
-      console.log(matchedNotifications);
+
       setNotifications(matchedNotifications);
-      console.log(matchedNotifications);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching user notifications:', error);

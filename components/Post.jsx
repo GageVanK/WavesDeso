@@ -780,7 +780,7 @@ export default function Post({ post, username }) {
         AssociationType: 'POLL_RESPONSE',
         AssociationValues: pollPostOptions,
       });
-      console.log(votes);
+      
       setVoteCount(votes);
     } catch (error) {
       console.error('Error fetching poll votes:', error);
