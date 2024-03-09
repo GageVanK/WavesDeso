@@ -1,4 +1,9 @@
-import { getPostsStateless, getFollowersForUser, getIsFollowing, identity } from 'deso-protocol';
+import {
+  getPostsStateless,
+  getFollowersForUser,
+  getUserAssociations,
+  identity,
+} from 'deso-protocol';
 import { useEffect, useState, useContext } from 'react';
 import { DeSoIdentityContext } from 'react-deso-protocol';
 import Link from 'next/link';
@@ -32,14 +37,35 @@ export const FollowerFeed = () => {
   const fetchFollowerFeed = async () => {
     try {
       setIsLoading(true);
-
       const followerFeedData = await getPostsStateless({
         ReaderPublicKeyBase58Check: userPublicKey,
         NumToFetch: 25,
         GetPostsForFollowFeed: true,
       });
 
-      setFollowerFeed(followerFeedData.PostsFound);
+      // Check if each poster is blocked
+      const postsWithoutBlocked = await Promise.all(
+        followerFeedData.PostsFound.map(async (post) => {
+          const didBlock = await getUserAssociations({
+            TargetUserPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+            TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+            AssociationType: 'BLOCK',
+            AssociationValue: 'BLOCK',
+          });
+
+          if (!didBlock.Associations[0]?.AssociationID) {
+            return post;
+          } else {
+            return null; // If blocked, return null to filter it out
+          }
+        })
+      );
+
+      // Filter out null values (blocked posts)
+      const filteredAndCleanedPosts = postsWithoutBlocked.filter((post) => post !== null);
+
+      setFollowerFeed(filteredAndCleanedPosts);
+
       setLastSeenPostHash(
         followerFeedData.PostsFound[followerFeedData.PostsFound.length - 1].PostHashHex
       );
@@ -59,8 +85,30 @@ export const FollowerFeed = () => {
         GetPostsForFollowFeed: true,
         PostHashHex: lastSeenPostHash,
       });
+
       if (morePostsData.PostsFound.length > 0) {
-        setFollowerFeed((prevPosts) => [...prevPosts, ...morePostsData.PostsFound]);
+        // Check if each poster is blocked
+        const postsWithoutBlocked = await Promise.all(
+          morePostsData.PostsFound.map(async (post) => {
+            const didBlock = await getUserAssociations({
+              TargetUserPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+              TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+              AssociationType: 'BLOCK',
+              AssociationValue: 'BLOCK',
+            });
+
+            if (!didBlock.Associations[0]?.AssociationID) {
+              return post;
+            } else {
+              return null; // If blocked, return null to filter it out
+            }
+          })
+        );
+
+        // Filter out null values (blocked posts)
+        const filteredAndCleanedPosts = postsWithoutBlocked.filter((post) => post !== null);
+
+        setFollowerFeed((prevPosts) => [...prevPosts, ...filteredAndCleanedPosts]);
         setLastSeenPostHash(
           morePostsData.PostsFound[morePostsData.PostsFound.length - 1].PostHashHex
         );

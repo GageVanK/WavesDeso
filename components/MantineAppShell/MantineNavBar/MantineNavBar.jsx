@@ -25,7 +25,12 @@ import {
 import { IconX, IconCheck } from '@tabler/icons-react';
 import { RxDotFilled } from 'react-icons/rx';
 import { GiWaveSurfer } from 'react-icons/gi';
-import { getPostsStateless, getIsFollowing, updateFollowingStatus } from 'deso-protocol';
+import {
+  getPostsStateless,
+  getIsFollowing,
+  updateFollowingStatus,
+  getUserAssociations,
+} from 'deso-protocol';
 import { DeSoIdentityContext } from 'react-deso-protocol';
 import Link from 'next/link';
 import { RiUserUnfollowLine, RiUserAddLine } from 'react-icons/ri';
@@ -54,7 +59,6 @@ export function MantineNavBar() {
     return filteredPosts;
   };
 
-  // Getting Waves Feed
   const fetchWavesFeed = async () => {
     try {
       const wavesFeedData = await getPostsStateless({
@@ -68,15 +72,38 @@ export function MantineNavBar() {
         wavesFeedData.PostsFound.filter((post) => post.PostExtraData.WavesStreamTitle)
       );
 
-      setWavesFeed(filteredPosts);
+      // Check if currentUser exists
+      if (currentUser) {
+        // Check if each poster is blocked
+        const postsWithoutBlocked = await Promise.all(
+          filteredPosts.map(async (post) => {
+            const didBlock = await getUserAssociations({
+              TargetUserPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+              TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+              AssociationType: 'BLOCK',
+              AssociationValue: 'BLOCK',
+            });
+
+            if (!didBlock.Associations[0]?.AssociationID) {
+              return post;
+            } else {
+              return null; // If blocked, return null to filter it out
+            }
+          })
+        );
+
+        // Filter out null values (blocked posts)
+        const filteredAndCleanedPosts = postsWithoutBlocked.filter((post) => post !== null);
+        
+        setWavesFeed(filteredAndCleanedPosts);
+      } else {
+        // If currentUser doesn't exist, set the waves feed without applying block filter
+        setWavesFeed(filteredPosts);
+      }
     } catch (error) {
       console.log('Something went wrong:', error);
     }
   };
-
-  useEffect(() => {
-    fetchWavesFeed();
-  }, []);
 
   // Check if the current user is following the profiles in the waves feed
   const fetchFollowingWaves = async () => {
@@ -146,6 +173,10 @@ export function MantineNavBar() {
       });
     }
   };
+
+  useEffect(() => {
+    fetchWavesFeed();
+  }, [currentUser]);
 
   // Fetch the followingPosts when the currentUser changes
   useEffect(() => {

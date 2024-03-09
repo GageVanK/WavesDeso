@@ -46,6 +46,7 @@ import NotificationsPage from '../../../pages/notifications';
 import { Search } from '@/components/Search';
 import { SignAndSubmitTx } from '@/components/SignAndSubmit/SubmitPost';
 import { ColorSchemeToggle } from '@/components/ColorSchemeToggle/ColorSchemeToggle';
+import { GoBlocked } from 'react-icons/go';
 import classes from './MantineHeader.module.css';
 
 export function MantineHeader() {
@@ -307,12 +308,20 @@ export function MantineHeader() {
                     {currentUser && (
                       <>
                         <Menu.Divider />
+                        <Menu.Label>Lists</Menu.Label>
                         <Menu.Item
                           component={Link}
                           href="/closeFriends"
                           leftSection={<LiaUsersSolid size={17} />}
                         >
                           Close Friends
+                        </Menu.Item>
+                        <Menu.Item
+                          component={Link}
+                          href="/blockedUsers"
+                          leftSection={<GoBlocked size={17} />}
+                        >
+                          Blocked Users
                         </Menu.Item>
                       </>
                     )}
@@ -525,12 +534,20 @@ export function MantineHeader() {
                     {currentUser && (
                       <>
                         <Menu.Divider />
+                        <Menu.Label>Lists</Menu.Label>
                         <Menu.Item
                           component={Link}
                           href="/closeFriends"
                           leftSection={<LiaUsersSolid size={17} />}
                         >
                           Close Friends
+                        </Menu.Item>
+                        <Menu.Item
+                          component={Link}
+                          href="/blockedUsers"
+                          leftSection={<GoBlocked size={17} />}
+                        >
+                          Blocked Users
                         </Menu.Item>
                       </>
                     )}

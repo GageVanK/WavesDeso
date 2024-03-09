@@ -1,5 +1,6 @@
-import { getPostsStateless } from 'deso-protocol';
-import { useEffect, useState } from 'react';
+import { getPostsStateless, getUserAssociations } from 'deso-protocol';
+import { DeSoIdentityContext } from 'react-deso-protocol';
+import { useEffect, useState, useContext } from 'react';
 import { Center, Space, Loader, Button } from '@mantine/core';
 import Post from '@/components/Post';
 
@@ -8,6 +9,7 @@ export const HotFeed = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastSeenPostHash, setLastSeenPostHash] = useState('');
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const { currentUser } = useContext(DeSoIdentityContext);
 
   const fetchNewFeed = async () => {
     try {
@@ -17,11 +19,38 @@ export const HotFeed = () => {
         MediaRequired: true,
       });
 
-      setNewFeed(newFeedData.PostsFound);
+      if (currentUser) {
+        // Check if each poster is blocked
+        const postsWithoutBlocked = await Promise.all(
+          newFeedData.PostsFound.map(async (post) => {
+            const didBlock = await getUserAssociations({
+              TargetUserPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+              TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+              AssociationType: 'BLOCK',
+              AssociationValue: 'BLOCK',
+            });
+
+            if (!didBlock.Associations[0]?.AssociationID) {
+              return post;
+            } else {
+              return null; // If blocked, return null to filter it out
+            }
+          })
+        );
+
+        // Filter out null values (blocked posts)
+        const filteredAndCleanedPosts = postsWithoutBlocked.filter((post) => post !== null);
+
+        setNewFeed(filteredAndCleanedPosts);
+        setIsLoading(false);
+      } else {
+        setNewFeed(newFeedData.PostsFound);
+        setIsLoading(false);
+      }
       setLastSeenPostHash(newFeedData.PostsFound[newFeedData.PostsFound.length - 1].PostHashHex);
-      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching user newFeedData:', error);
+      setIsLoading(false);
     }
   };
 
@@ -34,7 +63,35 @@ export const HotFeed = () => {
         MediaRequired: true,
       });
       if (morePostsData.PostsFound.length > 0) {
-        setNewFeed((prevPosts) => [...prevPosts, ...morePostsData.PostsFound]);
+        if (currentUser) {
+          // Check if each poster is blocked
+          const postsWithoutBlocked = await Promise.all(
+            morePostsData.PostsFound.map(async (post) => {
+              const didBlock = await getUserAssociations({
+                TargetUserPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+                TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+                AssociationType: 'BLOCK',
+                AssociationValue: 'BLOCK',
+              });
+
+              if (!didBlock.Associations[0]?.AssociationID) {
+                return post;
+              } else {
+                return null; // If blocked, return null to filter it out
+              }
+            })
+          );
+
+          // Filter out null values (blocked posts)
+          const filteredAndCleanedPosts = postsWithoutBlocked.filter((post) => post !== null);
+          setNewFeed((prevPosts) => [...prevPosts, ...filteredAndCleanedPosts]);
+
+          setIsLoading(false);
+        } else {
+          setNewFeed((prevPosts) => [...prevPosts, ...morePostsData.PostsFound]);
+          setIsLoading(false);
+        }
+
         setLastSeenPostHash(
           morePostsData.PostsFound[morePostsData.PostsFound.length - 1].PostHashHex
         );
@@ -50,7 +107,7 @@ export const HotFeed = () => {
 
   useEffect(() => {
     fetchNewFeed();
-  }, []);
+  }, [currentUser]);
 
   return (
     <>

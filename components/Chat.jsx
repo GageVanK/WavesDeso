@@ -96,7 +96,6 @@ export const Chat = ({ handle }) => {
         newEmotes.push(response.PostFound);
       }
 
-      console.log(newEmotes);
       setEmotes(newEmotes);
       setIsLoadingEmotes(false);
     } catch (error) {

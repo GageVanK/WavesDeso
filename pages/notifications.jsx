@@ -23,6 +23,7 @@ import {
   identity,
   getAppState,
   getUnreadNotificationsCount,
+  getUserAssociations,
 } from 'deso-protocol';
 import Link from 'next/link';
 import { GiWaveCrest, GiMoneyStack } from 'react-icons/gi';
@@ -57,6 +58,7 @@ export default function NotificationsPage() {
   const [lastIndex, setLastIndex] = useState('');
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+  // Fetch Notifications
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
@@ -73,8 +75,25 @@ export default function NotificationsPage() {
       // Check if notifications is defined
       if (notificationData.Notifications) {
         // Iterate through Notifications while maintaining the original order
-        notificationData.Notifications.forEach((notification) => {
+        for (const notification of notificationData.Notifications) {
           try {
+            const transactorPublicKey =
+              notification.Metadata?.TransactorPublicKeyBase58Check || null;
+            if (transactorPublicKey) {
+              // Check if the transactor is blocked
+              const didBlock = await getUserAssociations({
+                TargetUserPublicKeyBase58Check: transactorPublicKey,
+                TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+                AssociationType: 'BLOCK',
+                AssociationValue: 'BLOCK',
+              });
+
+              if (didBlock.Associations[0]?.AssociationID) {
+                // If transactor is blocked, skip this notification
+                continue;
+              }
+            }
+
             const parentPostHash =
               notification.Metadata.SubmitPostTxindexMetadata?.ParentPostHashHex ||
               notification.Metadata.BasicTransferTxindexMetadata?.PostHashHex;
@@ -121,29 +140,28 @@ export default function NotificationsPage() {
               }
             }
 
-            const transactorPublicKey =
-              notification.Metadata?.TransactorPublicKeyBase58Check || null;
-            const transactorProfile =
-              transactorPublicKey && notificationData.ProfilesByPublicKey[transactorPublicKey];
+            if (transactorPublicKey) {
+              const transactorProfile = notificationData.ProfilesByPublicKey[transactorPublicKey];
 
-            let matchedNotification = matchedNotifications.find(
-              (item) => item.notification === notification
-            );
+              let matchedNotification = matchedNotifications.find(
+                (item) => item.notification === notification
+              );
 
-            if (!matchedNotification) {
-              matchedNotification = {
-                notification,
-                transactorProfile: null,
-              };
-              matchedNotifications.push(matchedNotification);
+              if (!matchedNotification) {
+                matchedNotification = {
+                  notification,
+                  transactorProfile: null,
+                };
+                matchedNotifications.push(matchedNotification);
+              }
+
+              matchedNotification.transactorProfile = transactorProfile;
             }
-
-            matchedNotification.transactorProfile = transactorProfile;
           } catch (error) {
             console.error('Error processing notification:', notification);
             console.error('Error details:', error);
           }
-        });
+        }
       }
 
       setNotifications(matchedNotifications);
@@ -154,6 +172,7 @@ export default function NotificationsPage() {
     }
   };
 
+  // Fetch More Notifications
   const fetchMoreNotifications = async () => {
     try {
       setIsLoadingMore(true);
@@ -170,8 +189,25 @@ export default function NotificationsPage() {
       // Check if notifications is defined
       if (notificationData.Notifications) {
         // Iterate through Notifications while maintaining the original order
-        notificationData.Notifications.forEach((notification) => {
+        for (const notification of notificationData.Notifications) {
           try {
+            const transactorPublicKey =
+              notification.Metadata?.TransactorPublicKeyBase58Check || null;
+            if (transactorPublicKey) {
+              // Check if the transactor is blocked
+              const didBlock = await getUserAssociations({
+                TargetUserPublicKeyBase58Check: transactorPublicKey,
+                TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+                AssociationType: 'BLOCK',
+                AssociationValue: 'BLOCK',
+              });
+
+              if (didBlock.Associations[0]?.AssociationID) {
+                // If transactor is blocked, skip this notification
+                continue;
+              }
+            }
+
             const parentPostHash =
               notification.Metadata.SubmitPostTxindexMetadata?.ParentPostHashHex ||
               notification.Metadata.BasicTransferTxindexMetadata?.PostHashHex;
@@ -218,32 +254,31 @@ export default function NotificationsPage() {
               }
             }
 
-            const transactorPublicKey =
-              notification.Metadata?.TransactorPublicKeyBase58Check || null;
-            const transactorProfile =
-              transactorPublicKey && notificationData.ProfilesByPublicKey[transactorPublicKey];
+            if (transactorPublicKey) {
+              const transactorProfile = notificationData.ProfilesByPublicKey[transactorPublicKey];
 
-            let matchedNotification = matchedNotifications.find(
-              (item) => item.notification === notification
-            );
+              let matchedNotification = matchedNotifications.find(
+                (item) => item.notification === notification
+              );
 
-            if (!matchedNotification) {
-              matchedNotification = {
-                notification,
-                transactorProfile: null,
-              };
-              matchedNotifications.push(matchedNotification);
+              if (!matchedNotification) {
+                matchedNotification = {
+                  notification,
+                  transactorProfile: null,
+                };
+                matchedNotifications.push(matchedNotification);
+              }
+
+              matchedNotification.transactorProfile = transactorProfile;
             }
-
-            matchedNotification.transactorProfile = transactorProfile;
           } catch (error) {
             console.error('Error processing notification:', notification);
             console.error('Error details:', error);
           }
-        });
+        }
       }
 
-      setNotifications((prevPosts) => [...prevPosts, ...matchedNotifications]);
+      setNotifications((prevNotifications) => [...prevNotifications, ...matchedNotifications]);
 
       setIsLoadingMore(false);
     } catch (error) {
@@ -605,8 +640,8 @@ export default function NotificationsPage() {
                                             </Box>
                                             <Text fw={500} size="xs">
                                               @
-                                              {n.relatedModifiedPost.ProfileEntryResponse
-                                                .Username || 'Anon'}
+                                              {n.relatedModifiedPost?.ProfileEntryResponse
+                                                ?.Username || 'Anon'}
                                             </Text>
                                           </div>
                                         </Group>
@@ -681,8 +716,8 @@ export default function NotificationsPage() {
                                             </Box>
                                             <Text fw={500} size="xs">
                                               @
-                                              {n.relatedModifiedPost.ProfileEntryResponse
-                                                .Username || 'Anon'}
+                                              {n.relatedModifiedPost?.ProfileEntryResponse
+                                                ?.Username || 'Anon'}
                                             </Text>
                                           </div>
                                         </Group>
@@ -1344,7 +1379,7 @@ export default function NotificationsPage() {
                                         </Box>
                                         <Text fw={500} size="xs">
                                           @
-                                          {n.relatedModifiedPost.ProfileEntryResponse.Username ||
+                                          {n.relatedModifiedPost?.ProfileEntryResponse?.Username ||
                                             'Anon'}
                                         </Text>
                                       </div>
@@ -1540,7 +1575,7 @@ export default function NotificationsPage() {
                                         </Box>
                                         <Text fw={500} size="xs">
                                           @
-                                          {n.relatedModifiedPost.ProfileEntryResponse.Username ||
+                                          {n.relatedModifiedPost?.ProfileEntryResponse?.Username ||
                                             'Anon'}
                                         </Text>
                                       </div>

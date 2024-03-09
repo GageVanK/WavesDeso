@@ -22,6 +22,8 @@ import {
   TextInput,
   useMantineTheme,
   Modal,
+  Divider,
+  Title,
 } from '@mantine/core';
 import { GiWaveCrest } from 'react-icons/gi';
 import { notifications } from '@mantine/notifications';
@@ -84,8 +86,6 @@ export default function CloseFriendsList() {
                     // Add the associationId to the matching profile
                     matchingProfile.AssociationID = associationId;
 
-                 
-
                     return { matchingProfile };
                   }
                 }
@@ -98,7 +98,6 @@ export default function CloseFriendsList() {
             }).filter(Boolean) // Filter out null values
           : [];
 
- 
       setCloseFriends(matchedAssociations);
     } catch (error) {
       console.error(error);
@@ -159,7 +158,7 @@ export default function CloseFriendsList() {
         title: 'Success',
         icon: <IconCheck size="1.1rem" />,
         color: 'blue',
-        message: `${username} removed to Close Friends!`,
+        message: `${username} removed from Close Friends!`,
       });
 
       getCloseFriends();
@@ -176,6 +175,15 @@ export default function CloseFriendsList() {
   };
   return (
     <>
+      <Divider
+        my="xs"
+        label={
+          <>
+            <Title order={3}>Close Friends</Title>
+          </>
+        }
+        labelPosition="center"
+      />
       <Modal opened={opened} onClose={close} title="Add Close Friends">
         <Container>
           <TextInput
@@ -248,7 +256,7 @@ export default function CloseFriendsList() {
               <Paper shadow="xl" p="lg" withBorder>
                 <Center>
                   <Text c="dimmed" fw={700}>
-                    Please Sign Up or Sign In to view your Notifications.
+                    Please Sign Up or Sign In to view your Close Friends.
                   </Text>
                 </Center>
                 <Space h="md" />

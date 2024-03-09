@@ -8,6 +8,7 @@ import {
   IconRocket,
   IconUserPlus,
   IconUserMinus,
+  IconDotsVertical,
 } from '@tabler/icons-react';
 import { doc, getDoc } from 'firebase/firestore';
 import {
@@ -26,6 +27,7 @@ import {
   getPostAssociations,
 } from 'deso-protocol';
 import {
+  Menu,
   Container,
   ThemeIcon,
   CopyButton,
@@ -64,6 +66,7 @@ import { TwitchEmbed } from 'react-twitch-embed';
 import { TbPinned } from 'react-icons/tb';
 import { db } from '../../firebase-config';
 import { FaUsers, FaUsersSlash } from 'react-icons/fa';
+import { GoBlocked } from 'react-icons/go';
 
 export default function Wave() {
   const router = useRouter();
@@ -87,6 +90,7 @@ export default function Wave() {
   const [isCloseFriend, setIsCloseFriend] = useState(false);
   const [didCloseFriendId, setCloseFriendId] = useState();
   const [VODs, setVODs] = useState();
+  const [blockId, setBlockId] = useState(null);
   const embed = useRef();
 
   // For Twitch Embed
@@ -428,6 +432,90 @@ export default function Wave() {
     }
   };
 
+  // Checking if user is Blocked
+  const getDidBlock = async () => {
+    try {
+      const didBlock = await getUserAssociations({
+        TargetUserPublicKeyBase58Check: profile?.PublicKeyBase58Check,
+        TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        AssociationType: 'BLOCK',
+        AssociationValue: 'BLOCK',
+      });
+
+      setBlockId(didBlock.Associations[0]?.AssociationID);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Block user
+  const handleBlock = async () => {
+    try {
+      await createUserAssociation({
+        TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        TargetUserPublicKeyBase58Check: profile?.PublicKeyBase58Check,
+        AssociationType: 'BLOCK',
+        AssociationValue: 'BLOCK',
+        MinFeeRateNanosPerKB: 1000,
+      });
+
+      notifications.show({
+        title: 'Success',
+        icon: <GoBlocked size="1.1rem" />,
+        color: 'blue',
+        message: `You Blocked ${profile?.Username}!`,
+      });
+      getDidBlock();
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        icon: <IconX size="1.1rem" />,
+        color: 'red',
+        message: `Something Happened: ${error}`,
+      });
+
+      console.error('Error submitting heart:', error);
+    }
+  };
+
+  // Unblock User
+  const handleUnblock = async () => {
+    try {
+      await deleteUserAssociation({
+        TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        PostHashHex: profile?.PublicKeyBase58Check,
+        AssociationID: blockId,
+        AssociationType: 'BLOCK',
+        AssociationValue: 'BLOCK',
+        MinFeeRateNanosPerKB: 1000,
+      });
+
+      notifications.show({
+        title: 'Success',
+        icon: <IconCheck size="1.1rem" />,
+        color: 'blue',
+        message: 'Unblocked User',
+      });
+
+      setBlockId(null);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        icon: <IconX size="1.1rem" />,
+        color: 'red',
+        message: `Something Happened: ${error}`,
+      });
+
+      console.error('Error submitting heart:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser && profile?.PublicKeyBase58Check) {
+      getDidBlock();
+    }
+  }, [currentUser, profile, profile?.PublicKeyBase58Check]);
+
   // Fetch profile for username
   useEffect(() => {
     if (userName) {
@@ -507,233 +595,277 @@ export default function Wave() {
             </Group>
 
             <Space h="md" />
-            <Card.Section>
-              {streamPlaybackId ? (
-                <>
-                  <Player
-                    priority
-                    controls
-                    showPipButton
-                    theme={{
-                      colors: {
-                        loading: '#3cdfff',
-                      },
-                    }}
-                    playbackId={streamPlaybackId}
-                    title={profile.ExtraData?.WavesStreamTitle || `${profile?.Username}'s Wave`}
-                  />
-                </>
-              ) : (
-                <>
-                  {profile.ExtraData?.TwitchURL ? (
-                    <Group grow>
-                      <TwitchEmbed
-                        channel={extractTwitchUsername(profile.ExtraData?.TwitchURL)}
-                        withChat
-                        darkMode={true}
-                        onVideoReady={handleReady}
+            {!blockId && (
+              <>
+                <Card.Section>
+                  {streamPlaybackId ? (
+                    <>
+                      <Player
+                        priority
+                        controls
+                        showPipButton
+                        theme={{
+                          colors: {
+                            loading: '#3cdfff',
+                          },
+                        }}
+                        playbackId={streamPlaybackId}
+                        title={profile.ExtraData?.WavesStreamTitle || `${profile?.Username}'s Wave`}
                       />
-                    </Group>
+                    </>
                   ) : (
-                    <Divider
-                      my="xs"
-                      label={
-                        <>
-                          <Paper radius="sm" p="md" withBorder>
-                            <Text c="dimmed" fw={500} fs="md">
-                              Not live right now.
-                            </Text>
-                          </Paper>
-                        </>
-                      }
-                      labelPosition="center"
-                    />
+                    <>
+                      {profile.ExtraData?.TwitchURL ? (
+                        <Group grow>
+                          <TwitchEmbed
+                            channel={extractTwitchUsername(profile.ExtraData?.TwitchURL)}
+                            withChat
+                            darkMode={true}
+                            onVideoReady={handleReady}
+                          />
+                        </Group>
+                      ) : (
+                        <Divider
+                          my="xs"
+                          label={
+                            <>
+                              <Paper radius="sm" p="md" withBorder>
+                                <Text c="dimmed" fw={500} fs="md">
+                                  Not live right now.
+                                </Text>
+                              </Paper>
+                            </>
+                          }
+                          labelPosition="center"
+                        />
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </Card.Section>
-            <Space h="md" />
-            <Group justify="space-between">
-              <Group>
-                <ActionIcon.Group>
-                  <CopyButton
-                    value={`https://desowaves.vercel.app/wave/${userName}`}
-                    timeout={2000}
-                  >
-                    {({ copied, copy }) => (
-                      <>
-                        <Tooltip label={copied ? 'Copied' : `Copy Wave Link`}>
+                </Card.Section>
+                <Space h="md" />
+                <Group justify="space-between">
+                  <Group>
+                    <ActionIcon.Group>
+                      <CopyButton
+                        value={`https://desowaves.vercel.app/wave/${userName}`}
+                        timeout={2000}
+                      >
+                        {({ copied, copy }) => (
+                          <>
+                            <Tooltip label={copied ? 'Copied' : `Copy Wave Link`}>
+                              <ActionIcon
+                                variant="default"
+                                size="xl"
+                                aria-label="Share Button"
+                                onClick={copy}
+                              >
+                                {copied ? (
+                                  <>
+                                    <IconCheck style={{ width: rem(20) }} stroke={1.5} />
+                                  </>
+                                ) : (
+                                  <>
+                                    <IconScreenShare style={{ width: rem(20) }} stroke={1.5} />
+                                  </>
+                                )}
+                              </ActionIcon>
+                            </Tooltip>
+                          </>
+                        )}
+                      </CopyButton>
+                      {currentUser && (
+                        <Tooltip label={`Promote ${profile?.Username}'s Wave Onchain`}>
                           <ActionIcon
+                            onClick={postStreamToDeso}
                             variant="default"
                             size="xl"
-                            aria-label="Share Button"
-                            onClick={copy}
+                            aria-label="Launch"
                           >
-                            {copied ? (
-                              <>
-                                <IconCheck style={{ width: rem(20) }} stroke={1.5} />
-                              </>
-                            ) : (
-                              <>
-                                <IconScreenShare style={{ width: rem(20) }} stroke={1.5} />
-                              </>
-                            )}
+                            <IconRocket style={{ width: rem(20) }} stroke={1.5} />
                           </ActionIcon>
                         </Tooltip>
+                      )}
+                      {currentUser &&
+                        currentUser?.PublicKeyBase58Check !== profile.PublicKeyBase58Check &&
+                        (isCloseFriend || didCloseFriendId ? (
+                          <Tooltip label={`Remove ${profile?.Username}'s as Close Friend`}>
+                            <ActionIcon
+                              variant="default"
+                              size="xl"
+                              aria-label="Remove Close Friend"
+                              onClick={() => handleRemoveCloseFriend()}
+                            >
+                              <FaUsersSlash style={{ width: rem(20) }} stroke={1.5} />
+                            </ActionIcon>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip label={`Add ${profile?.Username}'s as Close Friend`}>
+                            <ActionIcon
+                              variant="default"
+                              size="xl"
+                              aria-label="Add Close Friend"
+                              onClick={() => handleAddCloseFriend()}
+                            >
+                              <FaUsers style={{ width: rem(20) }} stroke={1.5} />
+                            </ActionIcon>
+                          </Tooltip>
+                        ))}
+                      {currentUser &&
+                        currentUser?.PublicKeyBase58Check !== profile.PublicKeyBase58Check && (
+                          <>
+                            <Menu shadow="md" width={177}>
+                              <Menu.Target>
+                                <Tooltip label={`More`}>
+                                  <ActionIcon
+                                    variant="default"
+                                    size="xl"
+                                    aria-label="Add Close Friend"
+                                  >
+                                    <IconDotsVertical style={{ width: rem(20) }} stroke={1.5} />
+                                  </ActionIcon>
+                                </Tooltip>
+                              </Menu.Target>
+
+                              <Menu.Dropdown>
+                                <Menu.Item
+                                  color="red"
+                                  onClick={handleBlock}
+                                  leftSection={
+                                    <GoBlocked style={{ width: rem(16), height: rem(16) }} />
+                                  }
+                                >
+                                  Block
+                                </Menu.Item>
+                              </Menu.Dropdown>
+                            </Menu>
+                          </>
+                        )}
+                    </ActionIcon.Group>
+                    <Text fw={555} size="xl">
+                      {profile.ExtraData?.WavesStreamTitle || `${profile?.Username}'s Wave`}
+                    </Text>
+                  </Group>
+
+                  <SubscriptionModal
+                    publickey={profile.PublicKeyBase58Check}
+                    username={profile?.Username}
+                  />
+                </Group>
+
+                <Space h={55} />
+
+                <Text
+                  fz="sm"
+                  style={{
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'wrap',
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      profile && profile.Description
+                        ? replaceURLs(profile.Description.replace(/\n/g, '<br>'))
+                        : '',
+                  }}
+                />
+
+                <Space h="md" />
+                {profile.ExtraData?.FollowerGoal && (
+                  <>
+                    {profile.ExtraData?.FollowerGoal ===
+                    JSON.stringify(followerInfo.followers?.NumFollowers) ? (
+                      <>
+                        <Text size="xs" ta="center">
+                          Follower Goal Reached!
+                        </Text>
+                        <Center>
+                          <RingProgress
+                            sections={[
+                              {
+                                value: 100,
+                                color: 'teal',
+                                tooltip: `${profile.ExtraData?.FollowerGoal} Followers`,
+                              },
+                            ]}
+                            size={144}
+                            label={
+                              <Center>
+                                <ActionIcon color="teal" variant="light" radius="xl" size="xl">
+                                  <IconCheck style={{ width: rem(22), height: rem(22) }} />
+                                </ActionIcon>
+                              </Center>
+                            }
+                          />
+                        </Center>
+                      </>
+                    ) : (
+                      <>
+                        <Text size="xs" ta="center">
+                          Follower Goal: {profile.ExtraData?.FollowerGoal}
+                        </Text>
+                        <Center>
+                          <RingProgress
+                            size={144}
+                            roundCaps
+                            label={
+                              <Text size="sm" ta="center">
+                                {(
+                                  (followerInfo.followers?.NumFollowers /
+                                    profile.ExtraData?.FollowerGoal) *
+                                  100
+                                ).toFixed(0)}
+                                %
+                              </Text>
+                            }
+                            sections={[
+                              {
+                                value:
+                                  (followerInfo.followers?.NumFollowers /
+                                    profile.ExtraData?.FollowerGoal) *
+                                  100,
+                                color: 'cyan',
+                                tooltip: `${followerInfo.followers?.NumFollowers} Followers`,
+                              },
+                            ]}
+                          />
+                        </Center>
                       </>
                     )}
-                  </CopyButton>
-                  {currentUser && (
-                    <Tooltip label={`Promote ${profile?.Username}'s Wave Onchain`}>
-                      <ActionIcon
-                        onClick={postStreamToDeso}
-                        variant="default"
-                        size="xl"
-                        aria-label="Launch"
-                      >
-                        <IconRocket style={{ width: rem(20) }} stroke={1.5} />
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
-                  {currentUser &&
-                    currentUser?.PublicKeyBase58Check !== profile.PublicKeyBase58Check &&
-                    (isCloseFriend || didCloseFriendId ? (
-                      <Tooltip label={`Remove ${profile?.Username}'s as Close Friend`}>
-                        <ActionIcon
-                          variant="default"
-                          size="xl"
-                          aria-label="Remove Close Friend"
-                          onClick={() => handleRemoveCloseFriend()}
-                        >
-                          <FaUsersSlash style={{ width: rem(20) }} stroke={1.5} />
-                        </ActionIcon>
-                      </Tooltip>
-                    ) : (
-                      <Tooltip label={`Add ${profile?.Username}'s as Close Friend`}>
-                        <ActionIcon
-                          variant="default"
-                          size="xl"
-                          aria-label="Add Close Friend"
-                          onClick={() => handleAddCloseFriend()}
-                        >
-                          <FaUsers style={{ width: rem(20) }} stroke={1.5} />
-                        </ActionIcon>
-                      </Tooltip>
-                    ))}
-                </ActionIcon.Group>
-                <Text fw={555} size="xl">
-                  {profile.ExtraData?.WavesStreamTitle || `${profile?.Username}'s Wave`}
-                </Text>
-              </Group>
-
-              <SubscriptionModal
-                publickey={profile.PublicKeyBase58Check}
-                username={profile?.Username}
-              />
-            </Group>
-
-            <Space h={55} />
-
-            <Text
-              fz="sm"
-              style={{
-                maxWidth: '100%',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'wrap',
-              }}
-              dangerouslySetInnerHTML={{
-                __html:
-                  profile && profile.Description
-                    ? replaceURLs(profile.Description.replace(/\n/g, '<br>'))
-                    : '',
-              }}
-            />
-
-            <Space h="md" />
-            {profile.ExtraData?.FollowerGoal && (
-              <>
-                {profile.ExtraData?.FollowerGoal ===
-                JSON.stringify(followerInfo.followers?.NumFollowers) ? (
-                  <>
-                    <Text size="xs" ta="center">
-                      Follower Goal Reached!
-                    </Text>
-                    <Center>
-                      <RingProgress
-                        sections={[
-                          {
-                            value: 100,
-                            color: 'teal',
-                            tooltip: `${profile.ExtraData?.FollowerGoal} Followers`,
-                          },
-                        ]}
-                        size={144}
-                        label={
-                          <Center>
-                            <ActionIcon color="teal" variant="light" radius="xl" size="xl">
-                              <IconCheck style={{ width: rem(22), height: rem(22) }} />
-                            </ActionIcon>
-                          </Center>
-                        }
-                      />
-                    </Center>
-                  </>
-                ) : (
-                  <>
-                    <Text size="xs" ta="center">
-                      Follower Goal: {profile.ExtraData?.FollowerGoal}
-                    </Text>
-                    <Center>
-                      <RingProgress
-                        size={144}
-                        roundCaps
-                        label={
-                          <Text size="sm" ta="center">
-                            {(
-                              (followerInfo.followers?.NumFollowers /
-                                profile.ExtraData?.FollowerGoal) *
-                              100
-                            ).toFixed(0)}
-                            %
-                          </Text>
-                        }
-                        sections={[
-                          {
-                            value:
-                              (followerInfo.followers?.NumFollowers /
-                                profile.ExtraData?.FollowerGoal) *
-                              100,
-                            color: 'cyan',
-                            tooltip: `${followerInfo.followers?.NumFollowers} Followers`,
-                          },
-                        ]}
-                      />
-                    </Center>
                   </>
                 )}
+                <Center>
+                  {followerInfo.followers && followerInfo.followers.NumFollowers ? (
+                    <Text fz="sm">Followers: {followerInfo.followers.NumFollowers}</Text>
+                  ) : (
+                    <Text fz="sm">Followers: 0</Text>
+                  )}
+
+                  <Space w="sm" />
+                  <Divider size="sm" orientation="vertical" />
+                  <Space w="sm" />
+                  {followerInfo.following && followerInfo.following.NumFollowers ? (
+                    <Text fz="sm">Following: {followerInfo.following.NumFollowers}</Text>
+                  ) : (
+                    <Text fz="sm">Following: 0</Text>
+                  )}
+                </Center>
+                <Space h="md" />
               </>
             )}
-            <Center>
-              {followerInfo.followers && followerInfo.followers.NumFollowers ? (
-                <Text fz="sm">Followers: {followerInfo.followers.NumFollowers}</Text>
-              ) : (
-                <Text fz="sm">Followers: 0</Text>
-              )}
-
-              <Space w="sm" />
-              <Divider size="sm" orientation="vertical" />
-              <Space w="sm" />
-              {followerInfo.following && followerInfo.following.NumFollowers ? (
-                <Text fz="sm">Following: {followerInfo.following.NumFollowers}</Text>
-              ) : (
-                <Text fz="sm">Following: 0</Text>
-              )}
-            </Center>
-            <Space h="md" />
             <Space h="md" />
             {currentUser ? (
-              isFollowingUser ? (
+              blockId ? (
+                <Button
+                  fullWidth
+                  variant="gradient"
+                  gradient={{ from: 'cyan', to: 'indigo' }}
+                  radius="md"
+                  onClick={handleUnblock}
+                >
+                  Unblock
+                </Button>
+              ) : isFollowingUser ? (
                 <Group wrap="nowrap" gap={1}>
                   <Button
                     fullWidth
@@ -772,171 +904,178 @@ export default function Wave() {
               </Button>
             )}
           </Card>
+          {!blockId && (
+            <>
+              <Space h="sm" />
+              <Center>
+                <Button variant="light" hiddenFrom="md" onClick={toggle}>
+                  {openedChat ? <>Close Chat</> : <>Open Chat</>}
+                </Button>
+              </Center>
+              <Group justify="center" hiddenFrom="md">
+                <Collapse
+                  transitionDuration={1000}
+                  transitionTimingFunction="smooth"
+                  in={openedChat}
+                >
+                  <Chat handle={profile?.Username || 'Anon'} />
+                </Collapse>
+              </Group>
 
-          <Space h="sm" />
-          <Center>
-            <Button variant="light" hiddenFrom="md" onClick={toggle}>
-              {openedChat ? <>Close Chat</> : <>Open Chat</>}
-            </Button>
-          </Center>
-          <Group justify="center" hiddenFrom="md">
-            <Collapse transitionDuration={1000} transitionTimingFunction="smooth" in={openedChat}>
-              <Chat handle={profile?.Username || 'Anon'} />
-            </Collapse>
-          </Group>
+              <Space h="xl" />
 
-          <Space h="xl" />
+              <Tabs variant="default" defaultValue="first">
+                <Tabs.List grow>
+                  <Tabs.Tab value="first">
+                    <Text fz="sm">Posts</Text>
+                  </Tabs.Tab>
 
-          <Tabs variant="default" defaultValue="first">
-            <Tabs.List grow>
-              <Tabs.Tab value="first">
-                <Text fz="sm">Posts</Text>
-              </Tabs.Tab>
+                  <Tabs.Tab value="second">
+                    <Text fz="sm">NFTs</Text>
+                  </Tabs.Tab>
 
-              <Tabs.Tab value="second">
-                <Text fz="sm">NFTs</Text>
-              </Tabs.Tab>
+                  <Tabs.Tab value="third">
+                    <Text fz="sm">VODs</Text>
+                  </Tabs.Tab>
+                </Tabs.List>
 
-              <Tabs.Tab value="third">
-                <Text fz="sm">VODs</Text>
-              </Tabs.Tab>
-            </Tabs.List>
+                <Tabs.Panel value="first">
+                  {pinnedPost && (
+                    <>
+                      <Paper shadow="xl" radius="md">
+                        <ThemeIcon variant="light" radius="xs" size="md" color="red">
+                          <TbPinned />
+                        </ThemeIcon>
 
-            <Tabs.Panel value="first">
-              {pinnedPost && (
-                <>
-                  <Paper shadow="xl" radius="md">
-                    <ThemeIcon variant="light" radius="xs" size="md" color="red">
-                      <TbPinned />
-                    </ThemeIcon>
-
-                    <Post post={pinnedPost} username={profile.Username} />
-                  </Paper>
-                </>
-              )}
-              {isLoadingPosts ? (
-                <>
-                  <Space h="md" />
-                  <Center>
-                    <Loader variant="bars" />
-                  </Center>
-                </>
-              ) : posts && posts.length > 0 ? (
-                <>
-                  {posts.map((post, index) => (
-                    <div key={index}>
-                      <Post post={post} username={profile?.Username} />
-                    </div>
-                  ))}
-
-                  {isLoadingMore ? (
+                        <Post post={pinnedPost} username={profile.Username} />
+                      </Paper>
+                    </>
+                  )}
+                  {isLoadingPosts ? (
                     <>
                       <Space h="md" />
-                      <Group justify="center">
-                        <Loader />
-                      </Group>
+                      <Center>
+                        <Loader variant="bars" />
+                      </Center>
+                    </>
+                  ) : posts && posts.length > 0 ? (
+                    <>
+                      {posts.map((post, index) => (
+                        <div key={index}>
+                          <Post post={post} username={profile?.Username} />
+                        </div>
+                      ))}
+
+                      {isLoadingMore ? (
+                        <>
+                          <Space h="md" />
+                          <Group justify="center">
+                            <Loader />
+                          </Group>
+                        </>
+                      ) : (
+                        <Center>
+                          <Button onClick={fetchMorePosts}>Load More</Button>
+                        </Center>
+                      )}
+
+                      <Space h={222} />
                     </>
                   ) : (
-                    <Center>
-                      <Button onClick={fetchMorePosts}>Load More</Button>
-                    </Center>
+                    // If no NFTs, show the Badge
+                    <>
+                      <Space h="md" />
+                      <Center>
+                        <Badge
+                          size="md"
+                          radius="sm"
+                          variant="gradient"
+                          gradient={{ from: 'indigo', to: 'cyan', deg: 45 }}
+                        >
+                          Post something to view them here!
+                        </Badge>
+                      </Center>
+                    </>
                   )}
 
                   <Space h={222} />
-                </>
-              ) : (
-                // If no NFTs, show the Badge
-                <>
-                  <Space h="md" />
-                  <Center>
-                    <Badge
-                      size="md"
-                      radius="sm"
-                      variant="gradient"
-                      gradient={{ from: 'indigo', to: 'cyan', deg: 45 }}
-                    >
-                      Post something to view them here!
-                    </Badge>
-                  </Center>
-                </>
-              )}
+                </Tabs.Panel>
 
-              <Space h={222} />
-            </Tabs.Panel>
-
-            <Tabs.Panel value="third">
-              {isLoadingVODs ? (
-                <>
-                  <Space h="md" />
-                  <Center>
-                    <Loader variant="bars" />
-                  </Center>
-                </>
-              ) : // After loading, check if there are VODs to display
-              VODs && VODs.length > 0 ? (
-                VODs.map((vod, index) => {
-                  return (
+                <Tabs.Panel value="third">
+                  {isLoadingVODs ? (
                     <>
-                      <div key={index}>
-                        <Post post={vod} username={profile?.Username} />
-                      </div>
-                      <Space h="xs" />
+                      <Space h="md" />
+                      <Center>
+                        <Loader variant="bars" />
+                      </Center>
                     </>
-                  );
-                })
-              ) : (
-                // If no VODs, show the Badge
-                <>
-                  <Space h="md" />
+                  ) : // After loading, check if there are VODs to display
+                  VODs && VODs.length > 0 ? (
+                    VODs.map((vod, index) => {
+                      return (
+                        <>
+                          <div key={index}>
+                            <Post post={vod} username={profile?.Username} />
+                          </div>
+                          <Space h="xs" />
+                        </>
+                      );
+                    })
+                  ) : (
+                    // If no VODs, show the Badge
+                    <>
+                      <Space h="md" />
 
-                  <p>No VODs yet.</p>
+                      <p>No VODs yet.</p>
 
-                  <Space h={222} />
-                </>
-              )}
-            </Tabs.Panel>
+                      <Space h={222} />
+                    </>
+                  )}
+                </Tabs.Panel>
 
-            <Tabs.Panel value="second">
-              {isLoadingNFTs ? (
-                <>
-                  <Space h="md" />
-                  <Center>
-                    <Loader variant="bars" />
-                  </Center>
-                </>
-              ) : // After loading, check if there are NFTs to display
-              NFTs && Object.keys(NFTs).length > 0 ? (
-                Object.keys(NFTs).map((key, index) => {
-                  const nft = NFTs[key];
-                  return (
-                    <div key={index}>
-                      <Post
-                        post={nft.PostEntryResponse}
-                        username={nft.PostEntryResponse.ProfileEntryResponse.Username}
-                      />
-                    </div>
-                  );
-                })
-              ) : (
-                // If no NFTs, show the Badge
-                <>
-                  <Space h="md" />
-                  <Center>
-                    <Badge
-                      size="md"
-                      radius="sm"
-                      variant="gradient"
-                      gradient={{ from: 'indigo', to: 'cyan', deg: 45 }}
-                    >
-                      Mint something to view them here!
-                    </Badge>
-                  </Center>
+                <Tabs.Panel value="second">
+                  {isLoadingNFTs ? (
+                    <>
+                      <Space h="md" />
+                      <Center>
+                        <Loader variant="bars" />
+                      </Center>
+                    </>
+                  ) : // After loading, check if there are NFTs to display
+                  NFTs && Object.keys(NFTs).length > 0 ? (
+                    Object.keys(NFTs).map((key, index) => {
+                      const nft = NFTs[key];
+                      return (
+                        <div key={index}>
+                          <Post
+                            post={nft.PostEntryResponse}
+                            username={nft.PostEntryResponse.ProfileEntryResponse.Username}
+                          />
+                        </div>
+                      );
+                    })
+                  ) : (
+                    // If no NFTs, show the Badge
+                    <>
+                      <Space h="md" />
+                      <Center>
+                        <Badge
+                          size="md"
+                          radius="sm"
+                          variant="gradient"
+                          gradient={{ from: 'indigo', to: 'cyan', deg: 45 }}
+                        >
+                          Mint something to view them here!
+                        </Badge>
+                      </Center>
 
-                  <Space h={222} />
-                </>
-              )}
-            </Tabs.Panel>
-          </Tabs>
+                      <Space h={222} />
+                    </>
+                  )}
+                </Tabs.Panel>
+              </Tabs>
+            </>
+          )}
         </>
       ) : (
         <Container>

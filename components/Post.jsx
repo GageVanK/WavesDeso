@@ -79,6 +79,7 @@ import formatDate from '@/formatDate';
 import { SubscriptionModal } from './SubscriptionModal';
 import { NftModal } from './NftModal';
 import { getEmbedHeight, getEmbedURL, getEmbedWidth, isValidEmbedURL } from '../helpers/EmbedUrls';
+import { GoBlocked } from 'react-icons/go';
 
 export default function Post({ post, username }) {
   const { hovered, ref } = useHover();
@@ -99,15 +100,15 @@ export default function Post({ post, username }) {
   const [voteCount, setVoteCount] = useState();
   const [didVote, setDidVote] = useState(false);
   const [isHearted, setIsHearted] = useState();
-  const [heartCount, setHeartCount] = useState(post.LikeCount);
+  const [heartCount, setHeartCount] = useState(post?.LikeCount);
   const [didHeartId, setDidHeartId] = useState();
   const [didBookmarkId, setDidBookmarkId] = useState();
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isCloseFriend, setIsCloseFriend] = useState(false);
   const [didCloseFriendId, setCloseFriendId] = useState();
-  const [repostCount, setRepostCount] = useState(post.RepostCount);
-  const [diamondCount, setDiamondCount] = useState(post.DiamondCount);
-  const [commentCount, setCommentCount] = useState(post.CommentCount);
+  const [repostCount, setRepostCount] = useState(post?.RepostCount);
+  const [diamondCount, setDiamondCount] = useState(post?.DiamondCount);
+  const [commentCount, setCommentCount] = useState(post?.CommentCount);
   const [isFollowingUser, setisFollowingUser] = useState(false);
   const [didPinPost, setDidPinPost] = useState();
   const [editBody, setEditBody] = useState(post?.Body || '');
@@ -121,6 +122,8 @@ export default function Post({ post, username }) {
   const [isLoadingPost, setIsLoadingPost] = useState(false);
   const [embed, setEmbed] = useState(false);
   const [uploadInitiated, setUploadInitiated] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blockId, setBlockId] = useState();
 
   const handlePollOptions = (index, value) => {
     // Create a new array with the same values, but with the updated value at the specified index
@@ -211,7 +214,7 @@ export default function Post({ post, username }) {
   }, [imageFile]); // This effect runs whenever imageFile changes
 
   const isWavesStream =
-    post.VideoURLs && post.VideoURLs[0] && post.VideoURLs[0].includes('https://lvpr.tv/?v=');
+    post?.VideoURLs && post?.VideoURLs[0] && post?.VideoURLs[0].includes('https://lvpr.tv/?v=');
 
   const extractPlaybackId = (url) => {
     const match = url.match(/https:\/\/lvpr\.tv\/\?v=(.*)/);
@@ -224,7 +227,7 @@ export default function Post({ post, username }) {
     try {
       const req = {
         PublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
-        IsFollowingPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+        IsFollowingPublicKeyBase58Check: post?.PosterPublicKeyBase58Check,
       };
 
       const result = await getIsFollowing(req);
@@ -271,7 +274,7 @@ export default function Post({ post, username }) {
       await updateFollowingStatus({
         MinFeeRateNanosPerKB: 1000,
         IsUnfollow: true,
-        FollowedPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+        FollowedPublicKeyBase58Check: post?.PosterPublicKeyBase58Check,
         FollowerPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
       });
       getIsFollowingData();
@@ -335,7 +338,7 @@ export default function Post({ post, username }) {
 
       await submitPost({
         UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        ParentStakeID: post.PostHashHex,
+        ParentStakeID: post?.PostHashHex,
         BodyObj: {
           Body: comment,
           VideoURLs: [],
@@ -355,7 +358,7 @@ export default function Post({ post, username }) {
         message: 'Your comment was submitted!',
       });
       setIsLoadingPost(false);
-      setCommentCount(post.CommentCount + 1);
+      setCommentCount(post?.CommentCount + 1);
       setComment('');
       if (imageURL) {
         setImageURL('');
@@ -399,7 +402,7 @@ export default function Post({ post, username }) {
     try {
       await submitPost({
         UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        RepostedPostHashHex: post.PostHashHex,
+        RepostedPostHashHex: post?.PostHashHex,
         BodyObj: {
           Body: '',
           VideoURLs: [],
@@ -412,7 +415,7 @@ export default function Post({ post, username }) {
         color: 'green',
         message: 'Reposted!',
       });
-      setRepostCount(post.RepostCount + 1);
+      setRepostCount(post?.RepostCount + 1);
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -443,7 +446,7 @@ export default function Post({ post, username }) {
 
       await submitPost({
         UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        RepostedPostHashHex: post.PostHashHex,
+        RepostedPostHashHex: post?.PostHashHex,
         BodyObj: {
           Body: quoteBody,
           VideoURLs: [],
@@ -462,7 +465,7 @@ export default function Post({ post, username }) {
         message: 'Quoted!',
       });
       setIsLoadingPost(false);
-      setRepostCount(post.RepostCount + 1);
+      setRepostCount(post?.RepostCount + 1);
 
       setQuoteBody('');
       if (imageURL) {
@@ -495,7 +498,7 @@ export default function Post({ post, username }) {
     try {
       const response = await submitPost({
         UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        PostHashHexToModify: post.PostHashHex,
+        PostHashHexToModify: post?.PostHashHex,
         BodyObj: {
           Body: editBody,
           VideoURLs: [],
@@ -530,7 +533,7 @@ export default function Post({ post, username }) {
     try {
       await submitPost({
         UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        PostHashHexToModify: post.PostHashHex,
+        PostHashHexToModify: post?.PostHashHex,
         BodyObj: {
           Body: editBody,
           VideoURLs: [],
@@ -561,7 +564,7 @@ export default function Post({ post, username }) {
   const getHeartCount = async () => {
     try {
       const heartStats = await countPostAssociation({
-        PostHashHex: post.PostHashHex,
+        PostHashHex: post?.PostHashHex,
         AssociationType: 'REACTION',
         AssociationValue: 'LOVE',
       });
@@ -576,7 +579,7 @@ export default function Post({ post, username }) {
   const getDidUserHeart = async () => {
     try {
       const didHeart = await getPostAssociations({
-        PostHashHex: post.PostHashHex,
+        PostHashHex: post?.PostHashHex,
         TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
         AssociationType: 'REACTION',
         AssociationValue: 'LOVE',
@@ -613,7 +616,7 @@ export default function Post({ post, username }) {
     try {
       await createPostAssociation({
         TransactorPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        PostHashHex: post.PostHashHex,
+        PostHashHex: post?.PostHashHex,
         AssociationType: 'REACTION',
         AssociationValue: 'LOVE',
         MinFeeRateNanosPerKB: 1000,
@@ -645,7 +648,7 @@ export default function Post({ post, username }) {
     try {
       await deletePostAssociation({
         TransactorPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        PostHashHex: post.PostHashHex,
+        PostHashHex: post?.PostHashHex,
         AssociationID: didHeartId,
         AssociationType: 'REACTION',
         AssociationValue: 'LOVE',
@@ -689,9 +692,9 @@ export default function Post({ post, username }) {
 
     try {
       await sendDiamonds({
-        ReceiverPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+        ReceiverPublicKeyBase58Check: post?.PosterPublicKeyBase58Check,
         SenderPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        DiamondPostHashHex: post.PostHashHex,
+        DiamondPostHashHex: post?.PostHashHex,
         DiamondLevel: tip,
         MinFeeRateNanosPerKB: 1000,
       });
@@ -703,7 +706,7 @@ export default function Post({ post, username }) {
       });
 
       closeDiamond();
-      setDiamondCount(post.DiamondCount + 1);
+      setDiamondCount(post?.DiamondCount + 1);
     } catch (error) {
       notifications.show({
         title: 'Error',
@@ -730,7 +733,7 @@ export default function Post({ post, username }) {
     try {
       await createPostAssociation({
         TransactorPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
-        PostHashHex: post.PostHashHex,
+        PostHashHex: post?.PostHashHex,
         AssociationType: 'POLL_RESPONSE',
         AssociationValue: option,
         MinFeeRateNanosPerKB: 1000,
@@ -767,8 +770,8 @@ export default function Post({ post, username }) {
   };
 
   let pollPostOptions = [];
-  if (post.PostExtraData && typeof post.PostExtraData.PollOptions === 'string') {
-    pollPostOptions = parsePollOptionsString(post.PostExtraData.PollOptions);
+  if (post?.PostExtraData && typeof post?.PostExtraData?.PollOptions === 'string') {
+    pollPostOptions = parsePollOptionsString(post?.PostExtraData?.PollOptions);
   }
 
   // Get Votes for Poll
@@ -776,11 +779,11 @@ export default function Post({ post, username }) {
     try {
       // Call countPostAssociations with all poll options
       const votes = await countPostAssociations({
-        PostHashHex: post.PostHashHex,
+        PostHashHex: post?.PostHashHex,
         AssociationType: 'POLL_RESPONSE',
         AssociationValues: pollPostOptions,
       });
-      
+
       setVoteCount(votes);
     } catch (error) {
       console.error('Error fetching poll votes:', error);
@@ -877,7 +880,7 @@ export default function Post({ post, username }) {
   const getDidUserBookmark = async () => {
     try {
       const didBookmark = await getPostAssociations({
-        PostHashHex: post.PostHashHex,
+        PostHashHex: post?.PostHashHex,
         TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
         AssociationType: 'BOOKMARK',
         AssociationValue: 'BOOKMARK',
@@ -900,7 +903,7 @@ export default function Post({ post, username }) {
     try {
       await createPostAssociation({
         TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
-        PostHashHex: post.PostHashHex,
+        PostHashHex: post?.PostHashHex,
         AssociationType: 'BOOKMARK',
         AssociationValue: 'BOOKMARK',
         MinFeeRateNanosPerKB: 1000,
@@ -931,7 +934,7 @@ export default function Post({ post, username }) {
     try {
       await deletePostAssociation({
         TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
-        PostHashHex: post.PostHashHex,
+        PostHashHex: post?.PostHashHex,
         AssociationID: didBookmarkId,
         AssociationType: 'BOOKMARK',
         AssociationValue: 'BOOKMARK',
@@ -964,7 +967,7 @@ export default function Post({ post, username }) {
   const getDidCloseFriend = async () => {
     try {
       const didCF = await getUserAssociations({
-        TargetUserPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+        TargetUserPublicKeyBase58Check: post?.PosterPublicKeyBase58Check,
         TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
         AssociationType: 'CLOSE-FRIEND',
         AssociationValue: 'CLOSE-FRIEND',
@@ -987,7 +990,7 @@ export default function Post({ post, username }) {
     try {
       await createUserAssociation({
         TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
-        TargetUserPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+        TargetUserPublicKeyBase58Check: post?.PosterPublicKeyBase58Check,
         AssociationType: 'CLOSE-FRIEND',
         AssociationValue: 'CLOSE-FRIEND',
         MinFeeRateNanosPerKB: 1000,
@@ -1018,7 +1021,7 @@ export default function Post({ post, username }) {
     try {
       await deleteUserAssociation({
         TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
-        TargetUserPublicKeyBase58Check: post.PosterPublicKeyBase58Check,
+        TargetUserPublicKeyBase58Check: post?.PosterPublicKeyBase58Check,
         AssociationID: didCloseFriendId,
         AssociationType: 'CLOSE-FRIEND',
         AssociationValue: 'CLOSE-FRIEND',
@@ -1043,6 +1046,37 @@ export default function Post({ post, username }) {
       });
 
       setIsCloseFriend(true);
+      console.error('Error submitting heart:', error);
+    }
+  };
+
+  // Block user
+  const handleBlock = async () => {
+    try {
+      await createUserAssociation({
+        TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
+        TargetUserPublicKeyBase58Check: post?.PosterPublicKeyBase58Check,
+        AssociationType: 'BLOCK',
+        AssociationValue: 'BLOCK',
+        MinFeeRateNanosPerKB: 1000,
+      });
+
+      notifications.show({
+        title: 'Success',
+        icon: <GoBlocked size="1.1rem" />,
+        color: 'blue',
+        message: `You Blocked ${username}!`,
+      });
+      setIsBlocked(true);
+    } catch (error) {
+      notifications.show({
+        title: 'Error',
+        icon: <IconX size="1.1rem" />,
+        color: 'red',
+        message: `Something Happened: ${error}`,
+      });
+      setIsBlocked(false);
+
       console.error('Error submitting heart:', error);
     }
   };
@@ -1112,7 +1146,7 @@ export default function Post({ post, username }) {
           />
           <Space h="md" />
           <Group justify="right">
-            <Button disabled={editBody === post.Body} onClick={editPost}>
+            <Button disabled={editBody === post?.Body} onClick={editPost}>
               Edit
             </Button>
           </Group>
@@ -1160,7 +1194,7 @@ export default function Post({ post, username }) {
         <Group justify="right" mr={22}>
           <Button
             onClick={() => {
-              sendDiamondTip(post.PostHashHex, post.PosterPublicKeyBase58Check);
+              sendDiamondTip(post?.PostHashHex, post?.PosterPublicKeyBase58Check);
             }}
             leftSection={<IconDiamond size="1rem" />}
           >
@@ -1187,7 +1221,7 @@ export default function Post({ post, username }) {
 
           <Textarea
             variant="unstyled"
-            placeholder="Quote this post..."
+            placeholder="Quote this post?..."
             size="lg"
             value={quoteBody}
             onChange={(event) => setQuoteBody(event.currentTarget.value)}
@@ -1402,7 +1436,7 @@ export default function Post({ post, username }) {
                     title: 'Must be Signed In',
                     icon: <IconX size="1.1rem" />,
                     color: 'Red',
-                    message: 'Please sign in to post.',
+                    message: 'Please sign in to post?.',
                   });
                 }
               }}
@@ -1420,7 +1454,7 @@ export default function Post({ post, username }) {
         <Post post={post} username={username} />
       </Modal>
 
-      {post.IsHidden ? (
+      {post?.IsHidden || isBlocked ? (
         <></>
       ) : (
         <Paper m="md" shadow="lg" radius="md" p={3} withBorder>
@@ -1465,14 +1499,14 @@ export default function Post({ post, username }) {
                   <Menu.Item
                     leftSection={<IconMessageShare style={{ width: rem(16), height: rem(16) }} />}
                     component={Link}
-                    href={`/posts/${post.PostHashHex}`}
+                    href={`/posts/${post?.PostHashHex}`}
                   >
-                    {post.IsNFT ? 'View NFT' : 'View Post'}
+                    {post?.IsNFT ? 'View NFT' : 'View Post'}
                   </Menu.Item>
 
-                  {!post.IsNFT &&
+                  {!post?.IsNFT &&
                     currentUser &&
-                    currentUser?.PublicKeyBase58Check === post.PosterPublicKeyBase58Check && (
+                    currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check && (
                       <Menu.Item
                         onClick={openNft}
                         leftSection={<RiNftLine style={{ width: rem(16), height: rem(16) }} />}
@@ -1481,7 +1515,7 @@ export default function Post({ post, username }) {
                       </Menu.Item>
                     )}
                   {currentUser &&
-                    currentUser?.PublicKeyBase58Check === post.PosterPublicKeyBase58Check && (
+                    currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check && (
                       <Menu.Item
                         onClick={openEdit}
                         leftSection={<FiEdit style={{ width: rem(16), height: rem(16) }} />}
@@ -1491,7 +1525,7 @@ export default function Post({ post, username }) {
                     )}
 
                   {currentUser &&
-                    currentUser?.PublicKeyBase58Check !== post.PosterPublicKeyBase58Check &&
+                    currentUser?.PublicKeyBase58Check !== post?.PosterPublicKeyBase58Check &&
                     (isCloseFriend || didCloseFriendId ? (
                       <Menu.Item
                         onClick={() => handleRemoveCloseFriend()}
@@ -1513,27 +1547,38 @@ export default function Post({ post, username }) {
                     ))}
 
                   {currentUser &&
-                    currentUser?.PublicKeyBase58Check === post.PosterPublicKeyBase58Check &&
+                    currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check &&
                     (didPinPost ||
                     currentUser?.ProfileEntryResponse?.ExtraData?.PinnedPostHashHex ===
-                      post.PostHashHex ? (
+                      post?.PostHashHex ? (
                       <Menu.Item
                         onClick={() => handleUnpinPost()}
                         leftSection={<TbPinnedOff style={{ width: rem(16), height: rem(16) }} />}
                       >
-                        {post.IsNFT ? 'Pin NFT' : 'Pin Post'}
+                        {post?.IsNFT ? 'Pin NFT' : 'Pin Post'}
                       </Menu.Item>
                     ) : (
                       <Menu.Item
-                        onClick={() => handlePinPost(post.PostHashHex)}
+                        onClick={() => handlePinPost(post?.PostHashHex)}
                         leftSection={<TbPinned style={{ width: rem(16), height: rem(16) }} />}
                       >
-                        {post.IsNFT ? 'Pin NFT' : 'Pin Post'}
+                        {post?.IsNFT ? 'Pin NFT' : 'Pin Post'}
                       </Menu.Item>
                     ))}
 
                   {currentUser &&
-                    currentUser?.PublicKeyBase58Check === post.PosterPublicKeyBase58Check && (
+                    currentUser?.PublicKeyBase58Check !== post?.PosterPublicKeyBase58Check && (
+                      <Menu.Item
+                        color="red"
+                        onClick={handleBlock}
+                        leftSection={<GoBlocked style={{ width: rem(16), height: rem(16) }} />}
+                      >
+                        Block
+                      </Menu.Item>
+                    )}
+
+                  {currentUser &&
+                    currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check && (
                       <Menu.Item
                         color="red"
                         onClick={openHide}
@@ -1562,10 +1607,10 @@ export default function Post({ post, username }) {
                     radius="xl"
                     size="lg"
                     src={
-                      post.ProfileEntryResponse?.ExtraData?.LargeProfilePicURL ||
+                      post?.ProfileEntryResponse?.ExtraData?.LargeProfilePicURL ||
                       `https://node.deso.org/api/v0/get-single-profile-picture/${
-                        post.ProfileEntryResponse?.PublicKeyBase58Check ||
-                        post.PosterPublicKeyBase58Check
+                        post?.ProfileEntryResponse?.PublicKeyBase58Check ||
+                        post?.PosterPublicKeyBase58Check
                       }` ||
                       null
                     }
@@ -1575,7 +1620,7 @@ export default function Post({ post, username }) {
                   <div>
                     <Box w={111}>
                       <Text fw={500} size="sm" truncate="end">
-                        {post.ProfileEntryResponse?.ExtraData?.DisplayName || username}
+                        {post?.ProfileEntryResponse?.ExtraData?.DisplayName || username}
                       </Text>
                     </Box>
                     <Text size="xs" truncate="end">
@@ -1591,10 +1636,10 @@ export default function Post({ post, username }) {
                     radius="md"
                     size="xl"
                     src={
-                      post.ProfileEntryResponse?.ExtraData?.LargeProfilePicURL ||
+                      post?.ProfileEntryResponse?.ExtraData?.LargeProfilePicURL ||
                       `https://node.deso.org/api/v0/get-single-profile-picture/${
-                        post.ProfileEntryResponse?.PublicKeyBase58Check ||
-                        post.PosterPublicKeyBase58Check
+                        post?.ProfileEntryResponse?.PublicKeyBase58Check ||
+                        post?.PosterPublicKeyBase58Check
                       }` ||
                       null
                     }
@@ -1622,7 +1667,7 @@ export default function Post({ post, username }) {
 
                 <Box w={255}>
                   <Text fw={500} truncate="end">
-                    {post.ProfileEntryResponse?.ExtraData?.DisplayName || username}
+                    {post?.ProfileEntryResponse?.ExtraData?.DisplayName || username}
                   </Text>
                 </Box>
                 <Text size="xs" truncate="end">
@@ -1641,14 +1686,14 @@ export default function Post({ post, username }) {
                   }}
                   dangerouslySetInnerHTML={{
                     __html: post?.ProfileEntryResponse?.Description
-                      ? replaceURLs(post.ProfileEntryResponse?.Description).replace(/\n/g, '<br>')
+                      ? replaceURLs(post?.ProfileEntryResponse?.Description).replace(/\n/g, '<br>')
                       : '',
                   }}
                 />
                 <Space h="sm" />
                 <Group grow>
                   <SubscriptionModal
-                    publickey={post.PosterPublicKeyBase58Check}
+                    publickey={post?.PosterPublicKeyBase58Check}
                     username={username}
                   />
                 </Group>
@@ -1670,7 +1715,7 @@ export default function Post({ post, username }) {
                   wordWrap: 'break-word',
                 }}
                 dangerouslySetInnerHTML={{
-                  __html: post?.Body ? replaceURLs(post.Body).replace(/\n/g, '<br>') : '',
+                  __html: post?.Body ? replaceURLs(post?.Body).replace(/\n/g, '<br>') : '',
                 }}
               />
 
@@ -1678,16 +1723,16 @@ export default function Post({ post, username }) {
             </>
           )}
 
-          {post.PostExtraData?.EmbedVideoURL && (
+          {post?.PostExtraData?.EmbedVideoURL && (
             <>
               <Group justify="center">
                 <iframe
                   title="extraembed-video"
                   id="embed-iframe"
                   className="w-full flex-shrink-0 feed-post__image"
-                  height={getEmbedHeight(post.PostExtraData?.EmbedVideoURL)}
-                  style={{ maxWidth: getEmbedWidth(post.PostExtraData?.EmbedVideoURL) }}
-                  src={post.PostExtraData?.EmbedVideoURL}
+                  height={getEmbedHeight(post?.PostExtraData?.EmbedVideoURL)}
+                  style={{ maxWidth: getEmbedWidth(post?.PostExtraData?.EmbedVideoURL) }}
+                  src={post?.PostExtraData?.EmbedVideoURL}
                   frameBorder="0"
                   allow="picture-in-picture; clipboard-write; encrypted-media; gyroscope; accelerometer; encrypted-media;"
                   allowFullScreen
@@ -1708,15 +1753,15 @@ export default function Post({ post, username }) {
                   loading: '#3cdfff',
                 },
               }}
-              playbackId={extractPlaybackId(post.VideoURLs[0])}
-              title={post.PostExtraData?.WavesStreamTitle || `Video by ${username}`}
+              playbackId={extractPlaybackId(post?.VideoURLs[0])}
+              title={post?.PostExtraData?.WavesStreamTitle || `Video by ${username}`}
             />
           ) : (
-            post.VideoURLs &&
-            post.VideoURLs[0] && (
+            post?.VideoURLs &&
+            post?.VideoURLs[0] && (
               <Player
                 style={{ width: '100%', height: '100%' }}
-                src={post.VideoURLs[0]}
+                src={post?.VideoURLs[0]}
                 title={`Video by ${username}`}
                 controls
                 showPipButton
@@ -1729,26 +1774,26 @@ export default function Post({ post, username }) {
             )
           )}
 
-          {post.ImageURLs && post.ImageURLs[0] && (
+          {post?.ImageURLs && post?.ImageURLs[0] && (
             <>
               <Group justify="center">
                 <UnstyledButton
                   onClick={() => {
-                    setSelectedImage(post.ImageURLs[0]);
+                    setSelectedImage(post?.ImageURLs[0]);
                     openImage();
                   }}
                 >
-                  <Image src={post.ImageURLs[0]} radius="md" alt="post-image" fit="contain" />
+                  <Image src={post?.ImageURLs[0]} radius="md" alt="post-image" fit="contain" />
                 </UnstyledButton>
               </Group>
               <Space h="xs" />
             </>
           )}
 
-          {post.PostExtraData?.PollOptions && (
+          {post?.PostExtraData?.PollOptions && (
             <>
               <Group p="xs" justify="space-between">
-                <Tooltip label={`Weight Type: ${post.PostExtraData?.PollWeightType}`}>
+                <Tooltip label={`Weight Type: ${post?.PostExtraData?.PollWeightType}`}>
                   <ActionIcon variant="default" size="xs" radius="xl">
                     <BsInfoCircleFill />
                   </ActionIcon>
@@ -1801,10 +1846,10 @@ export default function Post({ post, username }) {
             </>
           )}
 
-          {post.RepostedPostEntryResponse && (
+          {post?.RepostedPostEntryResponse && (
             <Post
-              post={post.RepostedPostEntryResponse}
-              username={post.RepostedPostEntryResponse.ProfileEntryResponse.Username}
+              post={post?.RepostedPostEntryResponse}
+              username={post?.RepostedPostEntryResponse.ProfileEntryResponse.Username}
             />
           )}
 
