@@ -1552,10 +1552,10 @@ export default function Post({ post, username }) {
                     currentUser?.ProfileEntryResponse?.ExtraData?.PinnedPostHashHex ===
                       post?.PostHashHex ? (
                       <Menu.Item
-                        onClick={() => handleUnpinPost()}
+                        onClick={() => handleUnpinPost(post?.PostHashHex)}
                         leftSection={<TbPinnedOff style={{ width: rem(16), height: rem(16) }} />}
                       >
-                        {post?.IsNFT ? 'Pin NFT' : 'Pin Post'}
+                        {post?.IsNFT ? 'Unpin NFT' : 'Unpin Post'}
                       </Menu.Item>
                     ) : (
                       <Menu.Item
