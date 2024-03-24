@@ -79,6 +79,8 @@ export default function Wave() {
   const [isFollowingUser, setisFollowingUser] = useState(false);
   const [selectedImage, setSelectedImage] = useState('');
   const [opened, { open, close }] = useDisclosure(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [isLoadingStream, setIsLoadingStream] = useState(true);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [isLoadingNFTs, setIsLoadingNFTs] = useState(false);
   const [openedChat, { toggle }] = useDisclosure(true);
@@ -111,18 +113,26 @@ export default function Wave() {
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
+    } finally {
+      setIsLoadingProfile(false);
     }
   };
 
   // Get Stream
   const fetchStream = async () => {
-    const docRef = doc(db, 'streams', profile?.Username);
-    const streamData = await getDoc(docRef);
+    try {
+      const docRef = doc(db, 'streams', profile?.Username);
+      const streamData = await getDoc(docRef);
 
-    if (streamData.data()) {
-      setStreamPlaybackId(streamData.data().playbackId);
-    } else {
-      setStreamPlaybackId(undefined);
+      if (streamData.data()) {
+        setStreamPlaybackId(streamData.data().playbackId);
+      } else {
+        setStreamPlaybackId(undefined);
+      }
+    } catch (error) {
+      console.error('Error fetching user stream:', error);
+    } finally {
+      setIsLoadingStream(false);
     }
   };
 
@@ -550,7 +560,14 @@ export default function Wave() {
 
   return (
     <>
-      {profile ? (
+      {isLoadingProfile ? (
+        <>
+          <Space h="md" />
+          <Center>
+            <Loader />
+          </Center>
+        </>
+      ) : profile ? (
         <>
           <Card ml={17} shadow="sm" padding="lg" radius="md" withBorder>
             <Card.Section>
@@ -598,7 +615,14 @@ export default function Wave() {
             {!blockId && (
               <>
                 <Card.Section>
-                  {streamPlaybackId ? (
+                  {isLoadingStream ? (
+                    <>
+                      <Space h="md" />
+                      <Center>
+                        <Loader variant="dots" />
+                      </Center>
+                    </>
+                  ) : streamPlaybackId ? (
                     <>
                       <Player
                         priority
