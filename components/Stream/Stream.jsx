@@ -450,7 +450,6 @@ export const Stream = () => {
     <>
       <Modal opened={opened} onClose={close} centered>
         <TextInput
-          variant="filled"
           radius="xl"
           label="Change Title"
           placeholder={streamTitle || `${currentUser?.ProfileEntryResponse?.Username}'s Wave`}
@@ -484,7 +483,6 @@ export const Stream = () => {
 
       <Modal opened={openedFollowerGoal} onClose={closeFollowerGoal} centered title="Follower Goal">
         <NumberInput
-          variant="filled"
           description="Set your Follower Goal"
           min={1}
           defaultValue={1}

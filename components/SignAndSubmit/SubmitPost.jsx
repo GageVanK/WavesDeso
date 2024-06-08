@@ -10,12 +10,14 @@ import {
   createPostAssociation,
 } from 'deso-protocol';
 import React, { useContext, useRef, useState, useEffect, useMemo } from 'react';
+import classes from './SubmitPost.module.css';
 import { RiImageAddFill } from 'react-icons/ri';
 import { TbVideoPlus } from 'react-icons/tb';
 import {
   Switch,
   Stack,
   UnstyledButton,
+  AspectRatio,
   Button,
   Center,
   Space,
@@ -39,6 +41,7 @@ import {
   Box,
   useMantineTheme,
   Checkbox,
+  SimpleGrid,
 } from '@mantine/core';
 import { GiWaveCrest } from 'react-icons/gi';
 import { DeSoIdentityContext } from 'react-deso-protocol';
@@ -57,6 +60,7 @@ import {
   getEmbedWidth,
   isValidEmbedURL,
 } from '../../helpers/EmbedUrls';
+import { Carousel } from '@mantine/carousel';
 
 export const SignAndSubmitTx = ({ close }) => {
   const { currentUser } = useContext(DeSoIdentityContext);
@@ -66,7 +70,7 @@ export const SignAndSubmitTx = ({ close }) => {
   const [imageLoading, setImageLoading] = useState(false);
   const [embedUrl, setEmbedUrl] = useState('');
   const [imageFile, setImageFile] = useState(null);
-  const [imageURL, setImageURL] = useState('');
+  const [imageURL, setImageURL] = useState([]);
   const resetImageRef = useRef(null);
   const resetVideoRef = useRef(null);
   const [video, setVideo] = useState(null);
@@ -276,7 +280,7 @@ export const SignAndSubmitTx = ({ close }) => {
         file: imageFile,
       });
 
-      setImageURL(response.ImageURL);
+      setImageURL((prevURLs) => [...prevURLs, response.ImageURL]); // Append new URL to array
       setImageLoading(false);
       notifications.show({
         title: 'Success',
@@ -296,6 +300,10 @@ export const SignAndSubmitTx = ({ close }) => {
     } finally {
       setUploadInitiated(false);
     }
+  };
+
+  const handleRemoveImage = (urlToRemove) => {
+    setImageURL((prevURLs) => prevURLs.filter((url) => url !== urlToRemove));
   };
 
   useEffect(() => {
@@ -357,7 +365,7 @@ export const SignAndSubmitTx = ({ close }) => {
         UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
         BodyObj: {
           Body: bodyText,
-          ImageURLs: imageURL ? [imageURL] : [],
+          ImageURLs: imageURL,
           VideoURLs:
             video && asset && asset[0]?.playbackId
               ? [`https://lvpr.tv/?v=${asset[0].playbackId}`]
@@ -573,7 +581,6 @@ export const SignAndSubmitTx = ({ close }) => {
           radius="md"
           autosize
           placeholder="Sign In or Sign Up to Create!"
-          variant="filled"
           size="md"
         />
         <Space h="sm" />
@@ -669,7 +676,7 @@ export const SignAndSubmitTx = ({ close }) => {
       <Group>
         <Avatar
           size="lg"
-          radius="md"
+          radius="sm"
           src={`https://node.deso.org/api/v0/get-single-profile-picture/${currentUser?.PublicKeyBase58Check}`}
           alt="Profile Picture"
         />
@@ -685,28 +692,14 @@ export const SignAndSubmitTx = ({ close }) => {
         radius="md"
         placeholder="Announce your next Wave!"
         autosize
-        variant="filled"
-        size="md"
+        minRows={2}
         value={bodyText}
         onChange={(event) => setBodyText(event.currentTarget.value)}
       />
       <Space h="sm" />
-      {imageURL && (
+      {imageURL.length > 0 && (
         <div>
           <Group justify="space-between">
-            <ActionIcon
-              type="button"
-              onClick={() => {
-                setImageURL('');
-                setImageFile(null);
-                resetImageRef.current?.();
-              }}
-              size="xs"
-              color="red"
-            >
-              <IconX />
-            </ActionIcon>
-
             <Checkbox
               checked={emote}
               onChange={(event) => setEmote(event.currentTarget.checked)}
@@ -716,7 +709,53 @@ export const SignAndSubmitTx = ({ close }) => {
             />
           </Group>
           <Space h="xs" />
-          <Image src={imageURL} alt="Uploaded" maw={240} mx="auto" radius="md" />
+
+          <Carousel
+            withIndicators
+            loop
+            classNames={{
+              root: classes.carousel,
+              controls: classes.carouselControls,
+              indicator: classes.carouselIndicator,
+            }}
+          >
+            {imageURL?.map((url, index) => (
+              <Carousel.Slide key={index}>
+                <Box style={{ position: 'relative', width: '100%' }}>
+                  <AspectRatio ratio={16 / 9} mx="auto">
+                    <Image
+                      src={url}
+                      alt={`Uploaded Image ${index}`}
+                      maw={240}
+                      mx="auto"
+                      radius="md"
+                    />
+                  </AspectRatio>
+
+                  <Group
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: 0,
+                    }}
+                  >
+                    <ActionIcon
+                      type="button"
+                      onClick={() => {
+                        handleRemoveImage(url);
+                        setImageFile(null);
+                        resetImageRef.current?.();
+                      }}
+                      size="xs"
+                      color="red"
+                    >
+                      <IconX />
+                    </ActionIcon>
+                  </Group>
+                </Box>
+              </Carousel.Slide>
+            ))}
+          </Carousel>
         </div>
       )}
 
@@ -860,7 +899,6 @@ export const SignAndSubmitTx = ({ close }) => {
               }
               value={embedUrl}
               onChange={handleEmbedLink}
-              variant="filled"
               size="xs"
               radius="xl"
               placeholder="Add Link"
@@ -889,7 +927,6 @@ export const SignAndSubmitTx = ({ close }) => {
               pollOptions?.map((option, index) => (
                 <div key={index}>
                   <TextInput
-                    variant="filled"
                     placeholder={`Option ${index + 1}`}
                     radius="xl"
                     value={option}
@@ -930,7 +967,7 @@ export const SignAndSubmitTx = ({ close }) => {
             raduis="sm"
             onClick={handleCreatePost}
             disabled={
-              (!emote && !bodyText.trim()) ||
+              (!emote && bodyText.trim()) ||
               isLoadingPost ||
               (poll && pollOptions.filter((option) => option.trim() !== '').length < 2) ||
               (checkedNft && !price) ||
@@ -1043,7 +1080,6 @@ export const SignAndSubmitTx = ({ close }) => {
         <>
           <Space h="xs" />
           <NumberInput
-            variant="filled"
             label="NFT Copies"
             description="Sell Single or Multiple Copies."
             defaultValue={1}
@@ -1069,7 +1105,6 @@ export const SignAndSubmitTx = ({ close }) => {
           {checked ? (
             <>
               <NumberInput
-                variant="filled"
                 label="Buy Now Price"
                 description="Set the buy now price for your NFT."
                 placeholder="Enter Amount in $DESO"
@@ -1086,7 +1121,6 @@ export const SignAndSubmitTx = ({ close }) => {
           ) : (
             <>
               <NumberInput
-                variant="filled"
                 label="Minimum Bid"
                 description="Set the minimum bid price for your NFT."
                 placeholder="Enter Amount in $DESO"
@@ -1106,7 +1140,6 @@ export const SignAndSubmitTx = ({ close }) => {
           <Space h="lg" />
 
           <NumberInput
-            variant="filled"
             label="Your Royalty Percentage"
             description="This goes directly to you for secondary sales."
             placeholder="Percents"
@@ -1121,7 +1154,6 @@ export const SignAndSubmitTx = ({ close }) => {
           />
           <Space h="lg" />
           <NumberInput
-            variant="filled"
             label="Coin Holder Royalty Percentage"
             description="This will be distributed to your Creator Coin Holders."
             defaultValue={0}
@@ -1158,7 +1190,6 @@ export const SignAndSubmitTx = ({ close }) => {
 
           <TextInput
             leftSection={<BiSearchAlt size="1.2rem" />}
-            variant="filled"
             placeholder="Search for a creator by username"
             value={value}
             onChange={handleInputChange}
@@ -1215,7 +1246,6 @@ export const SignAndSubmitTx = ({ close }) => {
                   </Group>
 
                   <NumberInput
-                    variant="filled"
                     defaultValue={percentage}
                     placeholder="Percents"
                     suffix="%"

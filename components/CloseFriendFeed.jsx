@@ -114,9 +114,9 @@ export default function CloseFriendFeed() {
           {currentUser && closeFriendsFeed.length > 0 ? (
             closeFriendsFeed.map((post, index) => (
               // Render each post here
-              <div key={index}>
+              <Container size={1111} px={0} key={index}>
                 <Post post={post} username={post.ProfileEntryResponse?.Username || 'Anon'} />
-              </div>
+              </Container>
             ))
           ) : (
             <>

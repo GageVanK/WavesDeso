@@ -157,9 +157,9 @@ export const FollowerFeed = () => {
                 {followerFeed && followerFeed.length > 0 ? (
                   <>
                     {followerFeed.map((post, index) => (
-                      <div key={index}>
+                      <Container size={1111} px={0} key={index}>
                         <Post post={post} username={post.ProfileEntryResponse?.Username} />
-                      </div>
+                      </Container>
                     ))}
                     {isLoadingMore ? (
                       <>

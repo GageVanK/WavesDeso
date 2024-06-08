@@ -900,7 +900,7 @@ export default function Wave() {
                     Following
                   </Button>
                   <Tooltip label="Unfollow User" withArrow arrowPosition="center">
-                    <ActionIcon variant="filled" color="indigo" size={36} onClick={unfollowUser}>
+                    <ActionIcon color="indigo" size={36} onClick={unfollowUser}>
                       <RiUserUnfollowLine size="1rem" stroke={1.5} />
                     </ActionIcon>
                   </Tooltip>
@@ -966,13 +966,15 @@ export default function Wave() {
                 <Tabs.Panel value="first">
                   {pinnedPost && (
                     <>
-                      <Paper shadow="xl" radius="md">
-                        <ThemeIcon variant="light" radius="xs" size="md" color="red">
-                          <TbPinned />
-                        </ThemeIcon>
+                      <Container size={1111} px={0}>
+                        <Paper shadow="xl" radius="md">
+                          <ThemeIcon variant="light" radius="xs" size="md" color="red">
+                            <TbPinned />
+                          </ThemeIcon>
 
-                        <Post post={pinnedPost} username={profile.Username} />
-                      </Paper>
+                          <Post post={pinnedPost} username={profile.Username} />
+                        </Paper>
+                      </Container>
                     </>
                   )}
                   {isLoadingPosts ? (
@@ -985,9 +987,9 @@ export default function Wave() {
                   ) : posts && posts.length > 0 ? (
                     <>
                       {posts.map((post, index) => (
-                        <div key={index}>
+                        <Container size={1111} px={0} key={index}>
                           <Post post={post} username={profile?.Username} />
-                        </div>
+                        </Container>
                       ))}
 
                       {isLoadingMore ? (
@@ -1038,9 +1040,9 @@ export default function Wave() {
                     VODs.map((vod, index) => {
                       return (
                         <>
-                          <div key={index}>
+                          <Container size={1111} px={0} key={index}>
                             <Post post={vod} username={profile?.Username} />
-                          </div>
+                          </Container>
                           <Space h="xs" />
                         </>
                       );
