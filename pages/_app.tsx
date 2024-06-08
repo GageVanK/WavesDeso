@@ -20,6 +20,7 @@ import { Notifications } from '@mantine/notifications';
 import { MantineAppShell } from '@/components/MantineAppShell/MantineAppShell';
 import { theme } from '../theme';
 import '@mantine/notifications/styles.css';
+import "../global.css"
 
 configure({
   spendingLimitOptions: {

@@ -122,7 +122,7 @@ export function MantineHeader() {
               >
                 Waves
               </Text>
-              <Badge variant="filled" color="blue" radius="sm" className={classes.betaTag}>
+              <Badge color="blue" radius="sm" className={classes.betaTag}>
                 BETA
               </Badge>
             </Group>
@@ -280,7 +280,7 @@ export function MantineHeader() {
                       leftSection={<IconSwitchHorizontal size={17} />}
                       onClick={() => identity.login()}
                     >
-                      Switch Account
+                      Add Account
                     </Menu.Item>
                     {alternateUsers?.length > 0 && (
                       <>
@@ -506,7 +506,7 @@ export function MantineHeader() {
                       leftSection={<IconSwitchHorizontal size={17} />}
                       onClick={() => identity.login()}
                     >
-                      Switch Account
+                      Add Account
                     </Menu.Item>
                     {alternateUsers?.length > 0 && (
                       <>

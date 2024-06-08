@@ -192,7 +192,6 @@ export default function CloseFriendsList() {
             radius="md"
             size="md"
             placeholder="Search"
-            variant="filled"
             leftSection={<BiSearchAlt size="1.2rem" />}
             rightSection={
               value && (

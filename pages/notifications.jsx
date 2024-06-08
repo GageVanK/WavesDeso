@@ -329,15 +329,12 @@ export default function NotificationsPage() {
 
   return (
     <div>
-      <Divider
-        my="xs"
-        label={
-          <>
-            <Title order={3}>Notifications</Title>
-          </>
-        }
-        labelPosition="center"
-      />
+      <Center>
+        <Title order={3}>Notifications</Title>
+      </Center>
+      <Divider />
+
+      <Space h="lg" />
 
       {!currentUser && (
         <>

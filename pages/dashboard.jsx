@@ -463,15 +463,10 @@ export default function ProfilePage() {
 
   return (
     <>
-      <Divider
-        my="xs"
-        label={
-          <>
-            <Title order={3}>Dashboard</Title>
-          </>
-        }
-        labelPosition="center"
-      />
+      <Center>
+        <Title order={3}>Dashboard</Title>
+      </Center>
+      <Divider />
 
       <Space h="lg" />
 
@@ -718,9 +713,9 @@ export default function ProfilePage() {
               ) : posts && posts.length > 0 ? (
                 <>
                   {posts.map((post, index) => (
-                    <div key={index}>
+                    <Container size={777} px={0} key={index}>
                       <Post post={post} username={currentUser.ProfileEntryResponse?.Username} />
-                    </div>
+                    </Container>
                   ))}
 
                   {isLoadingMore ? (
@@ -771,12 +766,12 @@ export default function ProfilePage() {
                 Object.keys(NFTs).map((key, index) => {
                   const nft = NFTs[key];
                   return (
-                    <div key={index}>
+                    <Container size={777} px={0} key={index}>
                       <Post
                         post={nft.PostEntryResponse}
                         username={nft.PostEntryResponse.ProfileEntryResponse.Username}
                       />
-                    </div>
+                    </Container>
                   );
                 })
               ) : (
@@ -812,7 +807,6 @@ export default function ProfilePage() {
                           radius="md"
                           placeholder="Give your VOD post a Title."
                           autosize
-                          variant="filled"
                           size="md"
                           value={bodyText}
                           onChange={(event) => setBodyText(event.currentTarget.value)}
@@ -898,7 +892,6 @@ export default function ProfilePage() {
                           <>
                             <Space h="xs" />
                             <NumberInput
-                              variant="filled"
                               label="NFT Copies"
                               description="Sell Single or Multiple Copies."
                               defaultValue={1}
@@ -924,7 +917,6 @@ export default function ProfilePage() {
                             {checked ? (
                               <>
                                 <NumberInput
-                                  variant="filled"
                                   label="Buy Now Price"
                                   description="Set the buy now price for your NFT."
                                   placeholder="Enter Amount in $DESO"
@@ -941,7 +933,6 @@ export default function ProfilePage() {
                             ) : (
                               <>
                                 <NumberInput
-                                  variant="filled"
                                   label="Minimum Bid"
                                   description="Set the minimum bid price for your NFT."
                                   placeholder="Enter Amount in $DESO"
@@ -961,7 +952,6 @@ export default function ProfilePage() {
                             <Space h="lg" />
 
                             <NumberInput
-                              variant="filled"
                               label="Your Royalty Percentage"
                               description="This goes directly to you for secondary sales."
                               placeholder="Percents"
@@ -978,7 +968,6 @@ export default function ProfilePage() {
                             />
                             <Space h="lg" />
                             <NumberInput
-                              variant="filled"
                               label="Coin Holder Royalty Percentage"
                               description="This will be distributed to your Creator Coin Holders."
                               defaultValue={0}
@@ -1017,7 +1006,6 @@ export default function ProfilePage() {
 
                             <TextInput
                               leftSection={<BiSearchAlt size="1.2rem" />}
-                              variant="filled"
                               placeholder="Search for a creator by username"
                               value={value}
                               onChange={handleInputChange}
@@ -1075,7 +1063,6 @@ export default function ProfilePage() {
                                       </Group>
 
                                       <NumberInput
-                                        variant="filled"
                                         defaultValue={percentage}
                                         placeholder="Percents"
                                         suffix="%"
@@ -1184,9 +1171,10 @@ export default function ProfilePage() {
                 emotes.map((emote, index) => {
                   return (
                     <>
-                      <div key={index}>
+                      {' '}
+                      <Container size={777} px={0} key={index}>
                         <Post post={emote} username={currentUser?.ProfileEntryResponse?.Username} />
-                      </div>
+                      </Container>
                     </>
                   );
                 })
@@ -1210,9 +1198,12 @@ export default function ProfilePage() {
                 </>
               ) : bookmarks && bookmarks.length > 0 ? (
                 bookmarks.map((bookmark, index) => (
-                  <div key={index}>
-                    <Post post={bookmark} username={bookmark.ProfileEntryResponse.Username} />
-                  </div>
+                  <>
+                    {' '}
+                    <Container size={777} px={0} key={index}>
+                      <Post post={bookmark} username={bookmark.ProfileEntryResponse.Username} />
+                    </Container>
+                  </>
                 ))
               ) : (
                 // No Emotes

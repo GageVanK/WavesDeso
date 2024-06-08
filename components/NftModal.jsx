@@ -184,7 +184,6 @@ export function NftModal({ postHash, close }) {
       <Divider />
       <Space h="lg" />
       <NumberInput
-        variant="filled"
         label="NFT Copies"
         description="Sell Single or Multiple Copies."
         defaultValue={1}
@@ -210,7 +209,6 @@ export function NftModal({ postHash, close }) {
       {checked ? (
         <>
           <NumberInput
-            variant="filled"
             label="Buy Now Price"
             description="Set the buy now price for your NFT."
             placeholder="Enter Amount in $DESO"
@@ -227,7 +225,6 @@ export function NftModal({ postHash, close }) {
       ) : (
         <>
           <NumberInput
-            variant="filled"
             label="Minimum Bid"
             description="Set the minimum bid price for your NFT."
             placeholder="Enter Amount in $DESO"
@@ -247,7 +244,6 @@ export function NftModal({ postHash, close }) {
       <Space h="lg" />
 
       <NumberInput
-        variant="filled"
         label="Your Royalty Percentage"
         description="This goes directly to you for secondary sales."
         placeholder="Percents"
@@ -262,7 +258,6 @@ export function NftModal({ postHash, close }) {
       />
       <Space h="lg" />
       <NumberInput
-        variant="filled"
         label="Coin Holder Royalty Percentage"
         description="This will be distributed to your Creator Coin Holders."
         defaultValue={1}
@@ -298,7 +293,6 @@ export function NftModal({ postHash, close }) {
 
       <TextInput
         leftSection={<BiSearchAlt size="1.2rem" />}
-        variant="filled"
         placeholder="Search for a creator by username"
         value={value}
         onChange={handleInputChange}
@@ -354,7 +348,6 @@ export function NftModal({ postHash, close }) {
               </Group>
 
               <NumberInput
-                variant="filled"
                 defaultValue={percentage}
                 placeholder="Percents"
                 suffix="%"

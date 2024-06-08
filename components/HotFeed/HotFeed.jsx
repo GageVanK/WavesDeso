@@ -1,7 +1,7 @@
 import { getPostsStateless, getUserAssociations } from 'deso-protocol';
 import { DeSoIdentityContext } from 'react-deso-protocol';
 import { useEffect, useState, useContext } from 'react';
-import { Center, Space, Loader, Button } from '@mantine/core';
+import { Center, Space, Loader, Button, Container } from '@mantine/core';
 import Post from '@/components/Post';
 
 export const HotFeed = () => {
@@ -124,9 +124,9 @@ export const HotFeed = () => {
             {newFeed
               .filter((post) => post.ProfileEntryResponse?.Username !== 'BirthBlockNFT')
               .map((post, index) => (
-                <div key={index}>
+                <Container size={777} px={0} key={index}>
                   <Post post={post} username={post.ProfileEntryResponse?.Username} />
-                </div>
+                </Container>
               ))}
 
             {isLoadingMore ? (

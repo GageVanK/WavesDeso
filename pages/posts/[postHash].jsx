@@ -38,7 +38,6 @@ export default function PostPage() {
         });
 
         setSinglePost(postData?.PostFound);
-      
 
         // Fetch top-level comments
         setTopLevelComments(postData.PostFound?.Comments);
@@ -57,8 +56,6 @@ export default function PostPage() {
       fetchPostAndComments();
     }
   }, [postHash]);
-
-
 
   const Comment = ({ comment }) => (
     <Container size="lg" key={comment.PostHashHex}>
@@ -87,7 +84,7 @@ export default function PostPage() {
         </Container>
       ) : (
         <>
-          <Container size="xxl">
+          <Container size={777} px={0}>
             <Post post={singlePost} username={singlePost.ProfileEntryResponse?.Username} />
           </Container>
 

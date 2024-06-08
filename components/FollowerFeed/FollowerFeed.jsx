@@ -133,22 +133,24 @@ export const FollowerFeed = () => {
       <div>
         {currentUser ? (
           <>
-            <Space h="md" />
-            <Checkbox
-              ml={11}
-              label={
-                <UnstyledButton component={Link} href="/closeFriends">
-                  <Group gap="xs">
-                    <LiaUsersSolid size="1.5rem" />
-                    <Text fw={500} size="xs">
-                      Close Friends
-                    </Text>
-                  </Group>
-                </UnstyledButton>
-              }
-              checked={checked}
-              onChange={(event) => setChecked(event.currentTarget.checked)}
-            />
+            <Container size={777} px={0}>
+              <Space h="md" />
+              <Checkbox
+                ml={11}
+                label={
+                  <UnstyledButton component={Link} href="/closeFriends">
+                    <Group gap="xs">
+                      <LiaUsersSolid size="1.5rem" />
+                      <Text fw={500} size="xs">
+                        Close Friends
+                      </Text>
+                    </Group>
+                  </UnstyledButton>
+                }
+                checked={checked}
+                onChange={(event) => setChecked(event.currentTarget.checked)}
+              />
+            </Container>
 
             {checked ? (
               <CloseFriendFeed />
@@ -157,9 +159,9 @@ export const FollowerFeed = () => {
                 {followerFeed && followerFeed.length > 0 ? (
                   <>
                     {followerFeed.map((post, index) => (
-                      <div key={index}>
+                      <Container size={777} px={0} key={index}>
                         <Post post={post} username={post.ProfileEntryResponse?.Username} />
-                      </div>
+                      </Container>
                     ))}
                     {isLoadingMore ? (
                       <>

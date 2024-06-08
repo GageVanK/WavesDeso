@@ -249,7 +249,6 @@ export const Chat = ({ handle }) => {
                       )}
                     </>
                   }
-                  variant="filled"
                   radius="xl"
                   value={newMessage}
                   onChange={(event) => setNewMessage(event.target.value)}
@@ -257,13 +256,7 @@ export const Chat = ({ handle }) => {
                   placeholder="Enter Message"
                 />
 
-                <Button
-                  variant="filled"
-                  size="xs"
-                  radius="xl"
-                  type="submit"
-                  className="send-button"
-                >
+                <Button size="xs" radius="xl" type="submit" className="send-button">
                   Send
                 </Button>
               </Group>

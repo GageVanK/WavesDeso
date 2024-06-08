@@ -100,9 +100,9 @@ export const WavesFeed = () => {
       )}
 
       {wavesFeed.map((post, index) => (
-        <div key={index}>
+        <Container size={777} px={0} key={index}>
           <Post post={post} username={post.ProfileEntryResponse.Username} />
-        </div>
+        </Container>
       ))}
     </>
   );
