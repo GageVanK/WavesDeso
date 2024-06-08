@@ -125,15 +125,10 @@ export default function BlockList() {
   };
   return (
     <>
-      <Divider
-        my="xs"
-        label={
-          <>
-            <Title order={3}>Block List</Title>
-          </>
-        }
-        labelPosition="center"
-      />
+      <Center>
+        <Title order={3}>Blocked Users</Title>
+      </Center>
+      <Divider />
 
       <Space h="lg" />
       <Container>

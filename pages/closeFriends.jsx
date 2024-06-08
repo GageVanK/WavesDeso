@@ -175,15 +175,12 @@ export default function CloseFriendsList() {
   };
   return (
     <>
-      <Divider
-        my="xs"
-        label={
-          <>
-            <Title order={3}>Close Friends</Title>
-          </>
-        }
-        labelPosition="center"
-      />
+      <Center>
+        <Title order={3}>Close Friends</Title>
+      </Center>
+      <Divider />
+
+      <Space h="lg" />
       <Modal opened={opened} onClose={close} title="Add Close Friends">
         <Container>
           <TextInput
