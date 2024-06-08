@@ -1484,10 +1484,10 @@ export default function Post({ post, username }) {
               )}
 
               {isWavesStream ? (
-                <Container size={777} px={0}>
+                <Container size="100%" px={0} style={{ width: '100%' }}>
                   <Player
                     controls
-                    style={{ width: '1111px' }}
+                    style={{ width: '100%' }}
                     showPipButton
                     theme={{
                       colors: {
@@ -1495,14 +1495,15 @@ export default function Post({ post, username }) {
                       },
                     }}
                     playbackId={extractPlaybackId(post?.VideoURLs[0])}
-                    title={post?.PostExtraData?.WavesStreamTitle || `Stream by ${username}`}
+                    title={post?.PostExtraData?.WavesStreamTitle || `Video by ${username}`}
                   />
                 </Container>
               ) : (
                 post?.VideoURLs &&
                 post?.VideoURLs[0] && (
-                  <Container size={777} px={0}>
+                  <Container size="100%" px={0} style={{ width: '100%' }}>
                     <Player
+                      style={{ width: '100%' }}
                       src={post?.VideoURLs[0]}
                       title={`Video by ${username}`}
                       controls
@@ -1516,6 +1517,7 @@ export default function Post({ post, username }) {
                   </Container>
                 )
               )}
+
               {post?.ImageURLs &&
                 post?.ImageURLs.length > 0 &&
                 (post.ImageURLs.length > 1 ? (
@@ -2003,7 +2005,7 @@ export default function Post({ post, username }) {
                 onChange={(event) => setComment(event.target.value)}
               />
               <Space h="sm" />
-              {imageURL && (
+              {imageURL?.length > 0 && (
                 <div>
                   <ActionIcon
                     type="button"
