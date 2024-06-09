@@ -36,3 +36,8 @@
     text-align: left;
   }
 }
+
+.theme {
+  background-color: light-dark("white", #070707) !important;
+}
+

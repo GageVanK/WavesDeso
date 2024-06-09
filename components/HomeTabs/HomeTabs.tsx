@@ -1,4 +1,4 @@
-import { Tabs, rem, Center } from '@mantine/core';
+import { Tabs, rem, Container } from '@mantine/core';
 import { GiWaveCrest } from 'react-icons/gi';
 import { FaUsers } from 'react-icons/fa';
 import { RiTimerLine } from 'react-icons/ri';
@@ -10,6 +10,7 @@ import { BsFire } from "react-icons/bs";
 export function HomeTabs() {
   return (
     <Tabs variant="unstyled" defaultValue="Waves" classNames={classes}>
+     
       <Tabs.List style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <Tabs.Tab
           value="Waves"

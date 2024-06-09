@@ -338,7 +338,7 @@ export default function NotificationsPage() {
 
       {!currentUser && (
         <>
-          <Space h="xl" />
+         
           <Container size="30rem" px={0}>
             <Paper shadow="xl" p="lg" withBorder>
               <Center>

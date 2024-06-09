@@ -71,7 +71,7 @@ export default function PostPage() {
   );
   return (
     <>
-      <Space h={55} />
+     
       {singlePost.PostHashHex === undefined ? (
         <Container size="xxl">
           <Text ta="center">Post Does Not Exist.</Text>

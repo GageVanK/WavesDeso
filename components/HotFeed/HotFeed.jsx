@@ -13,6 +13,7 @@ export const HotFeed = () => {
 
   const fetchHotFeed = async (loadMore = false) => {
     try {
+
       if (loadMore) {
         setIsLoadingMore(true);
       } else {
@@ -29,7 +30,7 @@ export const HotFeed = () => {
       console.log("newFeedData", newFeedData);
   
       let postsToSet = newFeedData.HotFeedPage;
-  
+
       if (currentUser) {
         const postsWithoutBlocked = await Promise.all(
           postsToSet.map(async (post) => {
@@ -100,6 +101,7 @@ export const HotFeed = () => {
           </>
         ) : (
           <>
+
             {hotFeed
               ?.map((post, index) => (
                 <Container size={777} px={0} key={index}>

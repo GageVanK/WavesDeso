@@ -562,7 +562,7 @@ export const SignAndSubmitTx = ({ close }) => {
             fullWidth
             leftSection={<GiWaveCrest size="1rem" />}
             variant="gradient"
-            radius="lg"
+            radius="sm"
             onClick={() => identity.login()}
           >
             Sign Up

@@ -2,6 +2,7 @@
     position: relative;
     border: rem(1px) solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
     background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+
   
     &:first-of-type {
       border-radius: rem(4px) 0 0 rem(4px);
