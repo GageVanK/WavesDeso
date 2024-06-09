@@ -26,7 +26,7 @@ import {
   IconWallet,
   IconLogout,
   IconReceipt2,
-  IconSwitchHorizontal,
+  IconPlus,
   IconListSearch,
   IconSearch,
   IconLayoutDashboard,
@@ -277,7 +277,7 @@ export function MantineHeader() {
 
                   <Menu.Dropdown>
                     <Menu.Item
-                      leftSection={<IconSwitchHorizontal size={17} />}
+                      leftSection={<IconPlus size={17} />}
                       onClick={() => identity.login()}
                     >
                       Add Account
@@ -408,7 +408,7 @@ export function MantineHeader() {
                 <IconLayoutDashboard />
               </ActionIcon>
               <Space w="md" />
-              Profile
+              Dashbord
             </Link>
             <Space h="md" />
             <Link href="/wallet" className={classes.link} onClick={closeDrawer}>
@@ -503,7 +503,7 @@ export function MantineHeader() {
 
                   <Menu.Dropdown>
                     <Menu.Item
-                      leftSection={<IconSwitchHorizontal size={17} />}
+                      leftSection={<IconPlus size={17} />}
                       onClick={() => identity.login()}
                     >
                       Add Account

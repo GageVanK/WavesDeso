@@ -1,14 +1,5 @@
 
   
   .link {
-    @mixin hover {
-      background-color: light-dark(
-        var(--mantine-color-gray-0),
-        var(--mantine-color-dark-6)
-      );
-    }
-  
-    [data-mantine-color-scheme] &[data-active] {
-      background-color: var(--mantine-color-blue-light);
-    }
+    background-color: light-dark(#f2f3f9, #070707) !important;
   }

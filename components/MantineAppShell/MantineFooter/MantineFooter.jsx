@@ -57,74 +57,87 @@ export function MantineFooter() {
         <SignAndSubmitTx close={closeCreate} />
       </Modal>
 
-      <Group position="center" spacing="lg" grow wrap="nowrap" hiddenFrom="md">
-        <ActionIcon
-          className={classes.link}
-          data-active={active === '/' || undefined}
-          variant="subtle"
-          size="xl"
-          radius="md"
-          onClick={() => {
-            setActive('/');
-            router.push('/');
+      <Group justify="center" hiddenFrom="md">
+        <ActionIcon.Group
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1000,
+            marginBottom: '10px',
           }}
         >
-          <IconHome2 size="1.4rem" />
-        </ActionIcon>
-
-        <ActionIcon
-          variant="subtle"
-          className={classes.link}
-          data-active={active === '/dashboard' || undefined}
-          size="xl"
-          radius="md"
-          onClick={() => {
-            setActive('/dashboard');
-            router.push('/dashboard');
-          }}
-        >
-          <IconLayoutDashboard size="1.4rem" />
-        </ActionIcon>
-
-        {currentUser && (
-          <ActionIcon onClick={openCreate} color="blue" size="lg" radius="xl">
-            <FiPlus size="1.7rem" />
+          <ActionIcon
+            size="xl"
+            radius={100}
+            variant="default"
+            className={classes.link}
+            onClick={() => {
+              setActive('/');
+              router.push('/');
+            }}
+          >
+            <IconHome2 size="1.4rem" />
           </ActionIcon>
-        )}
 
-        <ActionIcon
-          variant="subtle"
-          data-active={active === '/wallet' || undefined}
-          size="xl"
-          radius="md"
-          className={classes.link}
-          onClick={() => {
-            setActive('/wallet');
-            router.push('/wallet');
-          }}
-        >
-          <IconReceipt2 size="1.4rem" />
-        </ActionIcon>
+          <ActionIcon
+            size="xl"
+            radius="md"
+            variant="default"
+            className={classes.link}
+            onClick={() => {
+              setActive('/dashboard');
+              router.push('/dashboard');
+            }}
+          >
+            <IconLayoutDashboard size="1.4rem" />
+          </ActionIcon>
 
-        <ActionIcon
-          variant="subtle"
-          className={classes.link}
-          data-active={active === '/notifications' || undefined}
-          size="xl"
-          radius="md"
-          onClick={() => {
-            setActive('/notifications');
-            router.push('/notifications');
-            resetUnreadNotifications();
-          }}
-        >
-          {currentUser && unreadNotifs > 0 && (
-            <Text fz="sm" fw={700} c="orange">
-              {unreadNotifs}
-            </Text>
+          {currentUser && (
+            <ActionIcon
+              onClick={openCreate}
+              variant="gradient"
+              gradient={{ from: 'cyan', to: 'blue', deg: 45 }}
+              size="xl"
+              radius="xl"
+            >
+              <FiPlus size="1.7rem" />
+            </ActionIcon>
           )}
-          <IconBellRinging size="1.4rem" />
-        </ActionIcon>
+
+          <ActionIcon
+            size="xl"
+            radius="md"
+            variant="default"
+            className={classes.link}
+            onClick={() => {
+              setActive('/wallet');
+              router.push('/wallet');
+            }}
+          >
+            <IconReceipt2 size="1.4rem" />
+          </ActionIcon>
+
+          <ActionIcon
+            size="xl"
+            radius={100}
+            variant="default"
+            className={classes.link}
+            onClick={() => {
+              setActive('/notifications');
+              router.push('/notifications');
+              resetUnreadNotifications();
+            }}
+          >
+            {currentUser && unreadNotifs > 0 && (
+              <Text fz="sm" fw={700} c="orange">
+                {unreadNotifs}
+              </Text>
+            )}
+            <IconBellRinging size="1.4rem" />
+          </ActionIcon>
+        </ActionIcon.Group>
       </Group>
     </>
   );

@@ -13,7 +13,7 @@ import { MantineAside } from '@/components/MantineAppShell/MantineAside/MantineA
 import { MantineFooter } from '@/components/MantineAppShell/MantineFooter/MantineFooter';
 import { Chat } from '@/components/Chat';
 import { Spotlight } from '../Spotlight/Spotlight';
-
+import classes from './MantineAppShell.module.css'
 export function MantineAppShell({ children }) {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
   const [opened, { open, close }] = useDisclosure(false);

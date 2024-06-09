@@ -5,6 +5,11 @@
     display: flex;
     flex-direction: column;
     border-right: rem(1px) solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+    
+  }
+
+  .theme {
+    background-color: light-dark(#f2f3f9, #070707) !important;
   }
   
   .navbarMain {
