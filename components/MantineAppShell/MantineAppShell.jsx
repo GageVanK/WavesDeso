@@ -60,12 +60,11 @@ export function MantineAppShell({ children }) {
       <AppShell
         header={{ height: 60 }}
         navbar={{
-          width: 300,
           breakpoint: 'md',
           collapsed: { mobile: !mobileOpened, desktop: !navOpened },
         }}
         aside={{
-          width: 300,
+          width: navOpened ? 300 : 60,
           breakpoint: 'md',
           collapsed: { mobile: !mobileOpened, desktop: !asideOpened },
         }}
@@ -112,20 +111,13 @@ export function MantineAppShell({ children }) {
 
         <AppShell.Main>
           <Group justify="space-between">
-            {!navOpened && (
-              <Tooltip position="right-start" label="Open Navbar">
-                <Group style={{ position: 'fixed', zIndex: 9999 }}>
-                  <ActionIcon variant="light" onClick={toggleNav} visibleFrom="sm">
-                    <RiArrowRightDoubleLine />
-                  </ActionIcon>
-                </Group>
-              </Tooltip>
-            )}
+           
 
             {!asideOpened && (
               <Tooltip position="right-start" label="Open Sidebar">
                 <Group
-                  mr={5}
+                  mr={10}
+                  mt={25}
                   justify="right"
                   style={{ position: 'fixed', zIndex: 9999, right: '1px' }}
                 >

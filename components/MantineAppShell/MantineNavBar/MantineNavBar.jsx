@@ -235,18 +235,32 @@ export function MantineNavBar({ navOpened, toggleNav }) {
   return (
     <>
     
-    <nav className={classes.navbar}>
+    <nav className={`${classes.navbar} ${navOpened && classes.navbarCollapsed}`}>
       <div className={classes.wrapper}>
         <div className={classes.aside}>
-          <Space h='xl' />
+          
+          {navOpened ? (
+            <>
+        <Group justify='right' mt={10} >
+<Tooltip position="right-start" label="Open Navbar">
+  <ActionIcon variant="light" onClick={toggleNav} visibleFrom="sm">
+    <RiArrowRightDoubleLine />
+  </ActionIcon>
+</Tooltip>
+</Group>
+
+<Space h="sm" />
+</>):(
+  <Space h={50} />
+)}
           
           {mainLinks}
 
         
         </div>
 
-        <div className={classes.main}>
-       {navOpened ? (
+        {!navOpened && (<div className={classes.main}>
+       {!navOpened ? (
         <Group justify='right'>
 <Tooltip position="right-start" label="Close Navbar">
   <ActionIcon variant="light" mt={11} mr={11} onClick={toggleNav} visibleFrom="sm">
@@ -577,6 +591,7 @@ export function MantineNavBar({ navOpened, toggleNav }) {
 
         <Space h="lg" />
         </div>
+        )}
       </div>
     </nav>
 
