@@ -38,12 +38,59 @@ import { notifications } from '@mantine/notifications';
 import classes from './MantineNavBar.module.css';
 import { SubscriptionModal } from '../../SubscriptionModal';
 import { replaceURLs } from '../../../helpers/linkHelper';
+import {
+  IconBellRinging,
+  IconHome2,
+  IconUser,
+  IconWallet,
+  IconLogout,
+  IconReceipt2,
+  IconPlus,
+  IconListSearch,
+  IconSearch,
+  IconLayoutDashboard,
+} from '@tabler/icons-react';
+import { PiSealQuestion } from 'react-icons/pi';
+import { useRouter } from 'next/router';
+import { RiArrowRightDoubleLine, RiArrowLeftDoubleLine } from 'react-icons/ri';
+import { ColorSchemeToggle } from '@/components/ColorSchemeToggle/ColorSchemeToggle';
 
-export function MantineNavBar() {
+const linksData = [
+  { icon: IconHome2, label: 'Home', href: '/' },
+  { icon: IconLayoutDashboard, label: 'Dashboard', href: '/dashboard' },
+  { icon: IconWallet, label: 'Wallet', href: '/wallet' },
+  { icon: PiSealQuestion, label: 'Why Waves', href: '/why' },
+];
+
+export function MantineNavBar({ navOpened, toggleNav }) {
   const [wavesFeed, setWavesFeed] = useState([]);
   const [followingWaves, setFollowingWaves] = useState([]);
   const [isFollowing, setIsFollowing] = useState();
   const { currentUser } = useContext(DeSoIdentityContext);
+  const [active, setActive] = useState('Releases');
+  const router = useRouter();
+  
+
+  const mainLinks = linksData.map((link) => (
+    <Tooltip
+      label={link.label}
+      position="right"
+      withArrow
+      transitionProps={{ duration: 0 }}
+      key={link.label}
+    >
+      <UnstyledButton
+         onClick={() => {
+          setActive(link.label);
+          router.push(`/${link.href}`);
+        }}
+        className={classes.mainLink}
+        data-active={link.label === active || undefined}
+      >
+        <link.icon style={{ width: rem(22), height: rem(22) }} stroke={1.5} />
+      </UnstyledButton>
+    </Tooltip>
+  ));
 
   // Function to filter out duplicate usernames from an array of posts
   const filterUniqueUsernames = (posts) => {
@@ -186,9 +233,31 @@ export function MantineNavBar() {
   }, [currentUser, wavesFeed, isFollowing]);
 
   return (
-    <nav>
-      <div>
-        <Space h="lg" />
+    <>
+    
+    <nav className={classes.navbar}>
+      <div className={classes.wrapper}>
+        <div className={classes.aside}>
+          <Space h='xl' />
+          
+          {mainLinks}
+
+        
+        </div>
+
+        <div className={classes.main}>
+       {navOpened ? (
+        <Group justify='right'>
+<Tooltip position="right-start" label="Close Navbar">
+  <ActionIcon variant="light" mt={11} mr={11} onClick={toggleNav} visibleFrom="sm">
+    <RiArrowLeftDoubleLine />
+  </ActionIcon>
+</Tooltip>
+</Group>
+       ):(
+        <Space h={40} />
+       )}
+        
 
         <Text fs="italic" size="md" fw={800} ta="center">
           Following
@@ -507,7 +576,10 @@ export function MantineNavBar() {
         )}
 
         <Space h="lg" />
+        </div>
       </div>
     </nav>
+
+    </>
   );
 }

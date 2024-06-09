@@ -70,26 +70,16 @@ export function MantineAppShell({ children }) {
           collapsed: { mobile: !mobileOpened, desktop: !asideOpened },
         }}
       >
-        <AppShell.Header>
+        <AppShell.Header className={classes.theme}>
           <MantineHeader />
         </AppShell.Header>
 
-        <AppShell.Navbar>
-          {navOpened && (
-            <>
-              <Group justify="right">
-                <Tooltip position="right-start" label="Close Navbar">
-                  <ActionIcon variant="light" mt={11} mr={11} onClick={toggleNav} visibleFrom="sm">
-                    <RiArrowLeftDoubleLine />
-                  </ActionIcon>
-                </Tooltip>
-              </Group>
-            </>
-          )}
-          <MantineNavBar />
+        <AppShell.Navbar className={classes.theme}>
+         
+          <MantineNavBar navOpened={navOpened} toggleNav={toggleNav}/>
         </AppShell.Navbar>
 
-        <AppShell.Aside>
+        <AppShell.Aside className={classes.theme}>
           {asideOpened && (
             <>
               <Tooltip position="right-start" label="Close Sidebar">

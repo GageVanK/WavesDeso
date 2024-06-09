@@ -6,13 +6,14 @@ import {
   Avatar,
   useMantineTheme,
   Text,
+  Stack,
 } from '@mantine/core';
 import { useState } from 'react';
 import { getProfiles } from 'deso-protocol';
 import { useRouter } from 'next/router';
 import { IconX } from '@tabler/icons-react';
 import { BiSearchAlt } from 'react-icons/bi';
-import classes from './Spotlight/Spotlight.module.css';
+import classes from './Search.module.css';
 
 export const Search = ({ close }) => {
   const router = useRouter();
@@ -37,23 +38,22 @@ export const Search = ({ close }) => {
   };
 
   return (
-    <>
+    <Stack className={classes.searchWrapper}>
       <TextInput
-        ml={2}
         value={value}
         onChange={handleInputChange}
         radius="md"
-        size="md"
+        size="sm"
         placeholder="Search"
         withAsterisk
-        leftSection={<BiSearchAlt size="1.2rem" />}
+        leftSection={<BiSearchAlt size="1.1rem" />}
         rightSection={
           value && (
             <ActionIcon
               onClick={() => {
                 setValue('');
               }}
-              size={32}
+              size={25}
               radius="xl"
               color={theme.primaryColor}
               variant="light"
@@ -66,9 +66,10 @@ export const Search = ({ close }) => {
       />
 
       {value && searchResults.length > 0 && (
-        <div>
+        <div className={classes.searchResults}>
           {searchResults.map((profile) => (
             <UnstyledButton
+              key={profile.Username}
               onClick={() => {
                 router.push(`/wave/${profile.Username}`);
                 close && close();
@@ -77,10 +78,7 @@ export const Search = ({ close }) => {
             >
               <Group>
                 <Avatar
-                  src={
-                    `https://node.deso.org/api/v0/get-single-profile-picture/${profile.PublicKeyBase58Check}` ||
-                    null
-                  }
+                  src={`https://node.deso.org/api/v0/get-single-profile-picture/${profile.PublicKeyBase58Check}`}
                   radius="xl"
                 />
 
@@ -98,6 +96,6 @@ export const Search = ({ close }) => {
           ))}
         </div>
       )}
-    </>
+    </Stack>
   );
 };

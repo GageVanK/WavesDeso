@@ -63,10 +63,11 @@ import {
   IconHeartBroken,
   IconUserMinus,
   IconUserPlus,
+  
 } from '@tabler/icons-react';
 import { TiInfoLargeOutline } from 'react-icons/ti';
 import { Player } from '@livepeer/react';
-import { useDisclosure, useHover } from '@mantine/hooks';
+import { useDisclosure, useHover} from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { BsChatQuoteFill, BsInfoCircleFill } from 'react-icons/bs';
 import { FaVoteYea, FaPoll } from 'react-icons/fa';
@@ -84,6 +85,7 @@ import { SubscriptionModal } from './SubscriptionModal';
 import { NftModal } from './NftModal';
 import { getEmbedHeight, getEmbedURL, getEmbedWidth, isValidEmbedURL } from '../helpers/EmbedUrls';
 import { GoBlocked } from 'react-icons/go';
+
 
 export default function Post({ post, username }) {
   const { hovered, ref } = useHover();
@@ -1262,7 +1264,7 @@ export default function Post({ post, username }) {
               id="embed-iframe"
               className="w-full flex-shrink-0 feed-post__image"
               height={getEmbedHeight(embedUrl)}
-              style={{ maxWidth: getEmbedWidth(embedUrl) }}
+              style={{ width: '100%' }}
               src={embedUrl}
               frameBorder="0"
               allow="picture-in-picture; clipboard-write; encrypted-media; gyroscope; accelerometer; encrypted-media;"
@@ -1457,108 +1459,8 @@ export default function Post({ post, username }) {
       {post?.IsHidden || isBlocked ? (
         <></>
       ) : (
-        <Card m="md" shadow="lg" radius="md" p="sm" withBorder>
-          {(post?.PostExtraData?.EmbedVideoURL ||
-            isWavesStream ||
-            (post?.VideoURLs && post?.VideoURLs[0]) ||
-            (post?.ImageURLs && post?.ImageURLs[0]) ||
-            post?.PostExtraData?.PollOptions) && (
-            <Card.Section>
-              {post?.PostExtraData?.EmbedVideoURL && (
-                <>
-                  <Group justify="center">
-                    <iframe
-                      title="extraembed-video"
-                      id="embed-iframe"
-                      className="w-full flex-shrink-0 feed-post__image"
-                      height={getEmbedHeight(post?.PostExtraData?.EmbedVideoURL)}
-                      style={{ maxWidth: getEmbedWidth(post?.PostExtraData?.EmbedVideoURL) }}
-                      src={post?.PostExtraData?.EmbedVideoURL}
-                      frameBorder="0"
-                      allow="picture-in-picture; clipboard-write; encrypted-media; gyroscope; accelerometer; encrypted-media;"
-                      allowFullScreen
-                      controls
-                    />
-                  </Group>
-                </>
-              )}
-
-              {isWavesStream ? (
-                <Container size="100%" px={0} style={{ width: '100%' }}>
-                  <Player
-                    controls
-                    style={{ width: '100%' }}
-                    showPipButton
-                    theme={{
-                      colors: {
-                        loading: '#3cdfff',
-                      },
-                    }}
-                    playbackId={extractPlaybackId(post?.VideoURLs[0])}
-                    title={post?.PostExtraData?.WavesStreamTitle || `Video by ${username}`}
-                  />
-                </Container>
-              ) : (
-                post?.VideoURLs &&
-                post?.VideoURLs[0] && (
-                  <Container size="100%" px={0} style={{ width: '100%' }}>
-                    <Player
-                      style={{ width: '100%' }}
-                      src={post?.VideoURLs[0]}
-                      title={`Video by ${username}`}
-                      controls
-                      showPipButton
-                      theme={{
-                        colors: {
-                          loading: '#3cdfff',
-                        },
-                      }}
-                    />
-                  </Container>
-                )
-              )}
-
-              {post?.ImageURLs &&
-                post?.ImageURLs.length > 0 &&
-                (post.ImageURLs.length > 1 ? (
-                  <Carousel
-                    withIndicators
-                    loop
-                    classNames={{
-                      root: classes.carousel,
-                      controls: classes.carouselControls,
-                      indicator: classes.carouselIndicator,
-                    }}
-                  >
-                    {post.ImageURLs.map((url, index) => (
-                      <Carousel.Slide key={index}>
-                        <Box style={{ position: 'relative', width: '100%' }}>
-                          <AspectRatio ratio={16 / 9} mx="auto">
-                            <Image
-                              src={url}
-                              alt={`Uploaded Image ${index}`}
-                              maw={777}
-                              mah={437}
-                              fit="-moz-initial"
-                            />
-                          </AspectRatio>
-                        </Box>
-                      </Carousel.Slide>
-                    ))}
-                  </Carousel>
-                ) : (
-                  <Box style={{ position: 'relative', width: '100%' }}>
-                    <AspectRatio ratio={16 / 9} mx="auto">
-                      <Image src={post.ImageURLs[0]} maw={777} alt="puppies" />
-                    </AspectRatio>
-                  </Box>
-                ))}
-            </Card.Section>
-          )}
-
-          <Box style={{ display: 'flex', flexDirection: 'column', height: '100%' }} pl={10}>
-            <Box style={{ flexGrow: 1 }}>
-              <Group justify="space-between" mt="lg">
+        <Card m="md" shadow="lg" radius="md" p="xs" withBorder className={classes.theme}>
+              <Group justify="space-between" mb={10}>
                 <Group>
                   <HoverCard width={333} shadow="md" position="right">
                     <HoverCard.Target>
@@ -1818,6 +1720,107 @@ export default function Post({ post, username }) {
                   </Menu>
                 </Group>
               </Group>
+          {(post?.PostExtraData?.EmbedVideoURL ||
+            isWavesStream ||
+            (post?.VideoURLs && post?.VideoURLs[0]) ||
+            (post?.ImageURLs && post?.ImageURLs[0]) ||
+            post?.PostExtraData?.PollOptions) && (
+            <Card.Section>
+              {post?.PostExtraData?.EmbedVideoURL && (
+                <>
+                  <Group justify="center">
+                    <iframe
+                      title="extraembed-video"
+                      id="embed-iframe"
+                      className="w-full flex-shrink-0 feed-post__image"
+                      height={getEmbedHeight(post?.PostExtraData?.EmbedVideoURL)}
+                      style={{ maxWidth: getEmbedWidth(post?.PostExtraData?.EmbedVideoURL) }}
+                      src={post?.PostExtraData?.EmbedVideoURL}
+                      frameBorder="0"
+                      allow="picture-in-picture; clipboard-write; encrypted-media; gyroscope; accelerometer; encrypted-media;"
+                      allowFullScreen
+                      controls
+                    />
+                  </Group>
+                </>
+              )}
+
+              {isWavesStream ? (
+                <Container size="100%" px={0} style={{ width: '100%' }}>
+                  <Player
+                    controls
+                    style={{ width: '100%' }}
+                    showPipButton
+                    theme={{
+                      colors: {
+                        loading: '#3cdfff',
+                      },
+                    }}
+                    playbackId={extractPlaybackId(post?.VideoURLs[0])}
+                    title={post?.PostExtraData?.WavesStreamTitle || `Video by ${username}`}
+                  />
+                </Container>
+              ) : (
+                post?.VideoURLs &&
+                post?.VideoURLs[0] && (
+                  <Container size="100%" px={0} style={{ width: '100%' }}>
+                    <Player
+                      style={{ width: '100%' }}
+                      src={post?.VideoURLs[0]}
+                      title={`Video by ${username}`}
+                      controls
+                      showPipButton
+                      theme={{
+                        colors: {
+                          loading: '#3cdfff',
+                        },
+                      }}
+                    />
+                  </Container>
+                )
+              )}
+
+              {post?.ImageURLs &&
+                post?.ImageURLs.length > 0 &&
+                (post.ImageURLs.length > 1 ? (
+                  <Carousel
+                    withIndicators
+                    loop
+                    classNames={{
+                      root: classes.carousel,
+                      controls: classes.carouselControls,
+                      indicator: classes.carouselIndicator,
+                    }}
+                  >
+                    {post.ImageURLs.map((url, index) => (
+                      <Carousel.Slide key={index}>
+                        <Box style={{ position: 'relative', width: '100%' }}>
+                          <AspectRatio ratio={16 / 9} mx="auto">
+                            <Image
+                              src={url}
+                              alt={`Uploaded Image ${index}`}
+                              maw={777}
+                              mah={437}
+                              fit="-moz-initial"
+                            />
+                          </AspectRatio>
+                        </Box>
+                      </Carousel.Slide>
+                    ))}
+                  </Carousel>
+                ) : (
+                  <Box style={{ position: 'relative', width: '100%' }}>
+                    <AspectRatio ratio={16 / 9} mx="auto">
+                      <Image src={post.ImageURLs[0]} maw={777} alt="puppies" />
+                    </AspectRatio>
+                  </Box>
+                ))}
+            </Card.Section>
+          )}
+
+          <Box style={{ display: 'flex', flexDirection: 'column', height: '100%' }} pl={10}>
+            <Box style={{ flexGrow: 1 }}>
+          
 
               <Space h="lg" />
 
@@ -1999,7 +2002,8 @@ export default function Post({ post, username }) {
             <>
               <Space h="md" />
               <Textarea
-                placeholder="Enter your comment..."
+              disabled={!currentUser}
+                placeholder={!currentUser ? "Sign In to Comment." : "Enter your comment..."}
                 autosize
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
@@ -2101,6 +2105,7 @@ export default function Post({ post, username }) {
                   <Space h="xs" />
                   <Box w={222}>
                     <TextInput
+                    
                       leftSection={
                         <>
                           <Tooltip
@@ -2164,13 +2169,15 @@ export default function Post({ post, username }) {
                   disabled={
                     !comment.trim() ||
                     isLoadingPost ||
-                    (poll && pollOptions.filter((option) => option.trim() !== '').length < 2)
+                    (poll && pollOptions.filter((option) => option.trim() !== '').length < 2) ||
+                    !currentUser
                   }
                 >
                   Comment
                 </Button>
 
                 <FileButton
+                disabled={!currentUser}
                   onChange={setImageFile}
                   accept="image/png,image/jpeg,image/png,image.gif,image/webp"
                   resetRef={resetImageRef}
@@ -2179,6 +2186,7 @@ export default function Post({ post, username }) {
                   {(props) => (
                     <Tooltip label="Upload Image">
                       <ActionIcon
+                      disabled={!currentUser}
                         color="blue"
                         size="lg"
                         variant="default"
@@ -2193,6 +2201,7 @@ export default function Post({ post, username }) {
 
                 <Tooltip label="Add Poll">
                   <ActionIcon
+                  disabled={!currentUser}
                     color="blue"
                     size="lg"
                     variant="default"
@@ -2205,6 +2214,7 @@ export default function Post({ post, username }) {
 
                 <Tooltip label="Embed">
                   <ActionIcon
+                  disabled={!currentUser}
                     color="blue"
                     size="lg"
                     variant="default"

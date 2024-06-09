@@ -10,9 +10,9 @@ export default function HomePage() {
         <SignAndSubmitTx close={undefined} />
       </Container>
       <Space h="xl" />
-
+      <Container size="30rem" px={0}>
       <HomeTabs />
-
+      </Container>
       <Space h="md" />
     </>
   );

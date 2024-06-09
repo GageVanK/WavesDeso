@@ -1,0 +1,32 @@
+/* styles.module.css */
+
+.searchWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.searchResults {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white; /* Adjust as needed for dark/light theme */
+  border: 1px solid #ccc; /* Adjust border color as needed */
+  border-radius: 4px;
+  z-index: 1000;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  max-height: 300px; /* Optional: limit the height and make it scrollable */
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.user {
+  width: 100%;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.user:hover {
+  background: #f0f0f0; /* Adjust hover background color as needed */
+}

@@ -43,7 +43,7 @@ import { useRouter } from 'next/router';
 import { MdOutlineDashboard } from 'react-icons/md';
 import { LiaUsersSolid } from 'react-icons/lia';
 import NotificationsPage from '../../../pages/notifications';
-import { Search } from '@/components/Search';
+import { Search } from '@/components/Search/Search';
 import { SignAndSubmitTx } from '@/components/SignAndSubmit/SubmitPost';
 import { ColorSchemeToggle } from '@/components/ColorSchemeToggle/ColorSchemeToggle';
 import { GoBlocked } from 'react-icons/go';
@@ -109,10 +109,10 @@ export function MantineHeader() {
         <Search close={closeSearch} />
       </Modal>
 
-      <Box>
+      <Box> 
         <header className={classes.header}>
           <Group justify="space-between" h="100%">
-            <Group>
+            <Group ml={22}>
               <Text
                 size="xl"
                 fw={900}
@@ -128,68 +128,37 @@ export function MantineHeader() {
             </Group>
 
             <Group h="100%" visibleFrom="sm" justify="center">
-              {currentUser && (
+            <Search close={closeSearch} />
+            </Group>
+
+            <Group visibleFrom="sm" mr={22}>
+            {currentUser && (
                 <Tooltip label="Create Post">
-                  <ActionIcon onClick={openCreate} variant="light" size="lg" radius="xl">
+                  <ActionIcon onClick={openCreate} variant="subtle" size="lg" radius="xl">
                     <BsPlusCircleDotted size="1.3rem" />
                   </ActionIcon>
                 </Tooltip>
               )}
 
-              <Tooltip label="Home" withArrow position="bottom" offset={3}>
-                <ActionIcon
-                  component={Link}
-                  href="/"
-                  variant="gradient"
-                  size="xl"
-                  aria-label="Gradient action icon"
-                  gradient={{ from: 'blue', to: 'cyan', deg: 360 }}
-                >
-                  <IconHome2 />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label="Dashboard" withArrow position="bottom" offset={3}>
-                <ActionIcon
-                  component={Link}
-                  href="/dashboard"
-                  variant="gradient"
-                  size="xl"
-                  aria-label="Gradient action icon"
-                  gradient={{ from: 'blue', to: 'cyan', deg: 90 }}
-                >
-                  <IconLayoutDashboard />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label="Wallet" withArrow position="bottom" offset={3}>
-                <ActionIcon
-                  component={Link}
-                  href="/wallet"
-                  variant="gradient"
-                  size="xl"
-                  aria-label="Gradient action icon"
-                  gradient={{ from: 'blue', to: 'cyan', deg: 150 }}
-                >
-                  <IconWallet />
-                </ActionIcon>
-              </Tooltip>
+        
 
               <Menu opened={opened} onChange={setOpened} offset={2} shadow="md" withArrow>
                 <Tooltip label="Notifications" withArrow position="bottom" offset={3}>
                   <Menu.Target>
                     <ActionIcon
-                      variant="gradient"
-                      size="xl"
-                      aria-label="Gradient action icon"
-                      gradient={{ from: 'blue', to: 'cyan', deg: 270 }}
+                      variant="subtle"
+                      size="lg"
+                       radius="xl"
+                      aria-label="Notification Button"
                       onClick={() => {
                         resetUnreadNotifications();
                         setOpened(true);
                       }}
                     >
-                      <IconBellRinging />
+                      <IconBellRinging size="1.3rem" strokeWidth={1.2}/>
 
                       {currentUser && unreadNotifs > 0 && (
-                        <Text fz="sm" fw={700} c="orange">
+                        <Text fz="sm" fw={700} c="red">
                           {unreadNotifs}
                         </Text>
                       )}
@@ -221,28 +190,11 @@ export function MantineHeader() {
                 </Menu.Dropdown>
               </Menu>
 
-              <Tooltip label="Why Waves" withArrow position="bottom" offset={3}>
-                <ActionIcon
-                  component={Link}
-                  href="/why"
-                  variant="gradient"
-                  size="xl"
-                  aria-label="Gradient action icon"
-                  gradient={{ from: 'blue', to: 'cyan', deg: 270 }}
-                >
-                  <PiSealQuestion size="1.7rem" />
-                </ActionIcon>
-              </Tooltip>
+          
 
-              <Tooltip label="Search Profiles">
-                <ActionIcon onClick={openSearch} variant="light" size="lg" radius="xl">
-                  <BiSearchAlt size="1.2rem" />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
-
-            <Group visibleFrom="sm">
               <ColorSchemeToggle />
+         
+             
               {!currentUser && (!alternateUsers || alternateUsers.length === 0) && (
                 <>
                   <Button variant="default" onClick={() => identity.login()}>
@@ -357,7 +309,12 @@ export function MantineHeader() {
               )}
             </Group>
 
-            <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" />
+              <Group gap='xs' hiddenFrom="sm" >
+              
+              <ColorSchemeToggle />
+              <Burger opened={drawerOpened} onClick={toggleDrawer} />
+              </Group>
+         
           </Group>
         </header>
 
@@ -381,10 +338,6 @@ export function MantineHeader() {
           zIndex={1000000}
         >
           <ScrollArea h={`calc(100vh - ${rem(60)})`} mx="-md">
-            <Group p="md">
-              <ColorSchemeToggle />
-            </Group>
-
             <Link href="/" className={classes.link} onClick={closeDrawer}>
               <ActionIcon
                 variant="gradient"
@@ -408,7 +361,7 @@ export function MantineHeader() {
                 <IconLayoutDashboard />
               </ActionIcon>
               <Space w="md" />
-              Dashbord
+              Dashboard
             </Link>
             <Space h="md" />
             <Link href="/wallet" className={classes.link} onClick={closeDrawer}>
