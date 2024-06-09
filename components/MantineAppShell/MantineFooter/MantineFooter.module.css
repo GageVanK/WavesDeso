@@ -1,5 +1,5 @@
 
   
   .link {
-    background-color: light-dark(#f2f3f9, #070707) !important;
+    background-color: light-dark("white", #070707) !important;
   }
