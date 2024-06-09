@@ -69,7 +69,7 @@ export function MantineFooter() {
           }}
         >
           <ActionIcon
-            size="xl"
+           size={55}
             radius={100}
             variant="default"
             className={classes.link}
@@ -82,7 +82,7 @@ export function MantineFooter() {
           </ActionIcon>
 
           <ActionIcon
-            size="xl"
+            size={55}
             radius="md"
             variant="default"
             className={classes.link}
@@ -99,7 +99,7 @@ export function MantineFooter() {
               onClick={openCreate}
               variant="gradient"
               gradient={{ from: 'cyan', to: 'blue', deg: 45 }}
-              size="xl"
+              size={55}
               radius="xl"
             >
               <FiPlus size="1.7rem" />
@@ -107,7 +107,7 @@ export function MantineFooter() {
           )}
 
           <ActionIcon
-            size="xl"
+            size={55}
             radius="md"
             variant="default"
             className={classes.link}
@@ -120,7 +120,7 @@ export function MantineFooter() {
           </ActionIcon>
 
           <ActionIcon
-            size="xl"
+            size={55}
             radius={100}
             variant="default"
             className={classes.link}
