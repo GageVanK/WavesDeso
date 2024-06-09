@@ -1,4 +1,4 @@
-import { getPostsStateless, getUserAssociations } from 'deso-protocol';
+import { getPostsStateless, getUserAssociations, getHotFeed } from 'deso-protocol';
 import { DeSoIdentityContext } from 'react-deso-protocol';
 import { useEffect, useState, useContext } from 'react';
 import { Center, Space, Loader, Button, Container } from '@mantine/core';
@@ -14,10 +14,11 @@ export const HotFeed = () => {
   const fetchNewFeed = async () => {
     try {
       setIsLoading(true);
-      const newFeedData = await getPostsStateless({
-        NumToFetch: 25,
-        MediaRequired: true,
+      const newFeedData = await getHotFeed({
+        ResponseLimit: 30,
       });
+
+      setNewFeed(newFeedData.HotFeedPage);
 
       if (currentUser) {
         // Check if each poster is blocked
@@ -122,7 +123,7 @@ export const HotFeed = () => {
         ) : (
           <>
             {newFeed
-              .filter((post) => post.ProfileEntryResponse?.Username !== 'BirthBlockNFT')
+              ?.filter((post) => post.ProfileEntryResponse?.Username !== 'BirthBlockNFT')
               .map((post, index) => (
                 <Container size={777} px={0} key={index}>
                   <Post post={post} username={post.ProfileEntryResponse?.Username} />

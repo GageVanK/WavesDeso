@@ -463,10 +463,13 @@ export default function ProfilePage() {
 
   return (
     <>
-      <Center>
+     <Center>
         <Title order={3}>Dashboard</Title>
       </Center>
       <Divider />
+    <Container>
+    
+     
 
       <Space h="lg" />
 
@@ -1246,6 +1249,7 @@ export default function ProfilePage() {
           </Container>
         </>
       )}
+    </Container>
     </>
   );
 }

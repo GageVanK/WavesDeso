@@ -6,11 +6,11 @@ import classes from './HomeTabs.module.css';
 import { HotFeed } from '@/components/HotFeed/HotFeed';
 import { FollowerFeed } from '@/components/FollowerFeed/FollowerFeed';
 import { WavesFeed } from '@/components/WavesFeed/WavesFeed';
-
+import { BsFire } from "react-icons/bs";
 export function HomeTabs() {
   return (
     <Tabs variant="unstyled" defaultValue="Waves" classNames={classes}>
-      <Container size={1000}>
+     
       <Tabs.List style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <Tabs.Tab
           value="Waves"
@@ -26,12 +26,12 @@ export function HomeTabs() {
         </Tabs.Tab>
         <Tabs.Tab
           value="Hot"
-          leftSection={<RiTimerLine style={{ width: rem(16), height: rem(16) }} />}
+          leftSection={<BsFire style={{ width: rem(16), height: rem(16) }} />}
         >
-          New
+          Hot
         </Tabs.Tab>
       </Tabs.List>
-      </Container>
+
       <Tabs.Panel value="Waves">
         <WavesFeed />
       </Tabs.Panel>

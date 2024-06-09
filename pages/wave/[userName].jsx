@@ -559,7 +559,7 @@ export default function Wave() {
   }, [profile, profile?.Username, profile?.ExtraData?.PinnedPostHashHex]);
 
   return (
-    <>
+    <Container>
       {isLoadingProfile ? (
         <>
           <Space h="md" />
@@ -1124,6 +1124,6 @@ export default function Wave() {
       <Modal opened={opened} onClose={close} size="auto" centered>
         <Image src={selectedImage} radius="md" alt="post-image" fit="contain" />
       </Modal>
-    </>
+    </Container>
   );
 }
