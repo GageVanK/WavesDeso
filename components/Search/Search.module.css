@@ -10,7 +10,7 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: white; /* Adjust as needed for dark/light theme */
+  background-color: light-dark("white", #070707);
   border: 1px solid #ccc; /* Adjust border color as needed */
   border-radius: 4px;
   z-index: 1000;
