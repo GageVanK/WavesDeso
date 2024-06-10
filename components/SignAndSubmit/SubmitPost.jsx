@@ -967,17 +967,19 @@ export const SignAndSubmitTx = ({ close }) => {
             raduis="sm"
             onClick={handleCreatePost}
             disabled={
-              (!emote && bodyText.trim()) ||
-              isLoadingPost ||
-              (poll && pollOptions.filter((option) => option.trim() !== '').length < 2) ||
-              (checkedNft && !price) ||
-              creatorRoyaltyPercentage +
-                coinHolderRoyaltyPercentage +
-                (Object.keys(extraCreatorRoyalties).length > 0
-                  ? Object.values(extraCreatorRoyalties).reduce((acc, cur) => acc + cur / 100, 0)
-                  : 0) >
-                100
-            }
+              !(
+                (emote || bodyText.trim()) && // Ensure there is either media or body text
+                !isLoadingPost &&
+                (!poll || pollOptions.filter((option) => option.trim() !== '').length >= 2) &&
+                (!checkedNft || price) &&
+                creatorRoyaltyPercentage +
+                  coinHolderRoyaltyPercentage +
+                  (Object.keys(extraCreatorRoyalties).length > 0
+                    ? Object.values(extraCreatorRoyalties).reduce((acc, cur) => acc + cur / 100, 0)
+                    : 0) <=
+                  100
+              )
+            }            
             loading={isLoadingPost}
           >
             Create
