@@ -1233,7 +1233,7 @@ export default function Post({ post, username }) {
           />
         </Group>
         <Space h="xs" />
-        {imageURL && (
+        {imageURL?.length > 0 && (
           <div>
             <ActionIcon
               type="button"
@@ -1393,6 +1393,7 @@ export default function Post({ post, username }) {
               {(props) => (
                 <Tooltip label="Upload Image">
                   <ActionIcon
+                  disabled={!currentUser}
                     color="blue"
                     size="lg"
                     variant="default"
@@ -1407,6 +1408,7 @@ export default function Post({ post, username }) {
 
             <Tooltip label="Add Poll">
               <ActionIcon
+              disabled={!currentUser}
                 color="blue"
                 size="lg"
                 variant="default"
@@ -1419,6 +1421,7 @@ export default function Post({ post, username }) {
 
             <Tooltip label="Embed">
               <ActionIcon
+              disabled={!currentUser}
                 color="blue"
                 size="lg"
                 variant="default"
@@ -1444,9 +1447,11 @@ export default function Post({ post, username }) {
               }}
               loading={isLoadingPost}
               disabled={
-                !quoteBody.trim() ||
+                !(quoteBody.trim() || imageURL.length > 0 || embedUrl || (poll && pollOptions.filter((option) => option.trim() !== '').length >= 2)) ||
                 isLoadingPost ||
-                (poll && pollOptions.filter((option) => option.trim() !== '').length < 2)
+                !currentUser
+                
+
               }
             >
               Quote
@@ -2167,10 +2172,10 @@ export default function Post({ post, username }) {
                   onClick={() => submitComment()}
                   loading={isLoadingPost}
                   disabled={
-                    !comment.trim() ||
-                    isLoadingPost ||
-                    (poll && pollOptions.filter((option) => option.trim() !== '').length < 2) ||
-                    !currentUser
+                    !(comment.trim() || imageURL.length > 0 || embedUrl || (poll && pollOptions.filter((option) => option.trim() !== '').length >= 2)) ||
+isLoadingPost ||
+!currentUser
+
                   }
                 >
                   Comment

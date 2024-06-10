@@ -7,6 +7,7 @@ import {
   useMantineTheme,
   Text,
   Stack,
+  Paper
 } from '@mantine/core';
 import { useState } from 'react';
 import { getProfiles } from 'deso-protocol';
@@ -66,7 +67,7 @@ export const Search = ({ close }) => {
       />
 
       {value && searchResults.length > 0 && (
-        <div className={classes.searchResults}>
+        <Paper className={classes.searchResults}>
           {searchResults.map((profile) => (
             <UnstyledButton
               key={profile.Username}
@@ -94,7 +95,7 @@ export const Search = ({ close }) => {
               </Group>
             </UnstyledButton>
           ))}
-        </div>
+        </Paper>
       )}
     </Stack>
   );
