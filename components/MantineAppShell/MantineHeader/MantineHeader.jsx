@@ -183,9 +183,9 @@ export function MantineHeader() {
                   </Group>
 
                   <ScrollArea h={555}>
-                    <Center>
+                  
                       <NotificationsPage />
-                    </Center>
+                    
                   </ScrollArea>
                 </Menu.Dropdown>
               </Menu>

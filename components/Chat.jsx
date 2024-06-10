@@ -30,6 +30,7 @@ import { useRouter } from 'next/router';
 import { BiSolidDownArrow } from 'react-icons/bi';
 import { identity, getPostAssociations, getSinglePost } from 'deso-protocol';
 import { GrEmoji } from 'react-icons/gr';
+import classes from './MantineAppShell/MantineAppShell.module.css'
 
 export const Chat = ({ handle }) => {
   const [messages, setMessages] = useState([]);
@@ -127,7 +128,7 @@ export const Chat = ({ handle }) => {
   }, []);
 
   return (
-    <Paper p="sm" className="chat-app">
+    <Paper p="sm" className={classes.theme}>
       <Text fw={777} size="xl" ta="center">
         {handle}&apos;s Chat
       </Text>

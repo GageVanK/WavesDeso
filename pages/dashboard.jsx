@@ -512,10 +512,8 @@ export default function ProfilePage() {
               </Group>
 
               <Group>
-                <AddTwitch />
-                <Space w={1} />
+                
                 <UpdateProfile />
-                <Space w={1} />
               </Group>
             </Group>
             <Space h="md" />

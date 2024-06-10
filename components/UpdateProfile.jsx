@@ -57,16 +57,17 @@ function validateXURL(url) {
 export function UpdateProfile() {
   const { currentUser } = useContext(DeSoIdentityContext);
   const [opened, { open, close }] = useDisclosure(false);
-  const [newUsername, setNewUsername] = useState('');
-  const [newBio, setNewBio] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [location, setLocation] = useState('');
-  const [xURL, setXURL] = useState('');
-  const [ytURL, setYtURL] = useState('');
-  const [igURL, setIgURL] = useState('');
-  const [twitchURL, setTwitchURL] = useState('');
+  const [newUsername, setNewUsername] = useState(currentUser?.ProfileEntryResponse?.Username || '');
+  const [newBio, setNewBio] = useState(currentUser?.ProfileEntryResponse?.Description || '');
+  const [displayName, setDisplayName] = useState(currentUser?.ProfileEntryResponse?.ExtraData?.DisplayName || '');
+  const [location, setLocation] = useState(currentUser?.ProfileEntryResponse?.ExtraData?.Location || '');
+  const [xURL, setXURL] = useState(currentUser?.ProfileEntryResponse?.ExtraData?.TwitterURL || '');
+  const [ytURL, setYtURL] = useState(currentUser?.ProfileEntryResponse?.ExtraData?.YoutubeURL || '');
+  const [igURL, setIgURL] = useState(currentUser?.ProfileEntryResponse?.ExtraData?.InstagramURL || '');
+  const [twitchURL, setTwitchURL] = useState(currentUser?.ProfileEntryResponse?.ExtraData?.TwitchURL || '');
   const [errorMessage, setErrorMessage] = useState('');
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  console.log("curr", currentUser)
 
   const [coverImageFile, setCoverImageFile] = useState(null);
   const [coverImageURL, setCoverImageURL] = useState('');
@@ -167,7 +168,7 @@ export function UpdateProfile() {
       if (coverImageURL) updateData.ExtraData.FeaturedImageURL = coverImageURL;
       if (displayName) updateData.ExtraData.DisplayName = displayName;
       if (location) updateData.ExtraData.Location = location;
-      if (xURL) updateData.ExtraData.XURL = validateXURL(xURL);
+      if (xURL) updateData.ExtraData.TwitterURL = validateXURL(xURL);
       if (ytURL) updateData.ExtraData.YoutubeURL = validateYtURL(ytURL);
       if (igURL) updateData.ExtraData.InstagramURL = validateIgURL(igURL);
       if (twitchURL) updateData.ExtraData.TwitchURL = validateTwitchURL(twitchURL);
@@ -339,6 +340,7 @@ export function UpdateProfile() {
             <TextInput
               type="text"
               label="Twitch"
+              placeholder="Link to your Twitch Profile..."
               leftSection={
                 <Avatar
                   radius="sm"
@@ -353,6 +355,7 @@ export function UpdateProfile() {
             <TextInput
               type="text"
               label="Youtube"
+              placeholder="Link to your Youtube Profile..."
               leftSection={
                 <Avatar
                   radius="sm"
@@ -367,6 +370,7 @@ export function UpdateProfile() {
             <TextInput
               type="text"
               label="X"
+              placeholder="Link to your X Profile..."
               leftSection={
                 <Avatar
                   radius="sm"
@@ -381,6 +385,7 @@ export function UpdateProfile() {
             <TextInput
               type="text"
               label="Instagram"
+              placeholder="Link to your Instagram Profile..."
               leftSection={
                 <Avatar
                   radius="sm"

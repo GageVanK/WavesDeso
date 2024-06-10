@@ -4,13 +4,14 @@ import { FaUsers } from 'react-icons/fa';
 import { RiTimerLine } from 'react-icons/ri';
 import classes from './HomeTabs.module.css';
 import { HotFeed } from '@/components/HotFeed/HotFeed';
+import { NewFeed } from '@/components/NewFeed/NewFeed';
 import { FollowerFeed } from '@/components/FollowerFeed/FollowerFeed';
 import { WavesFeed } from '@/components/WavesFeed/WavesFeed';
 import { BsFire } from "react-icons/bs";
+
 export function HomeTabs() {
   return (
     <Tabs variant="unstyled" defaultValue="Waves" classNames={classes}>
-     
       <Tabs.List style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <Tabs.Tab
           value="Waves"
@@ -30,6 +31,7 @@ export function HomeTabs() {
         >
           Hot
         </Tabs.Tab>
+        
       </Tabs.List>
 
       <Tabs.Panel value="Waves">
@@ -43,6 +45,7 @@ export function HomeTabs() {
       <Tabs.Panel value="Hot">
         <HotFeed />
       </Tabs.Panel>
+
     </Tabs>
   );
 }

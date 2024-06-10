@@ -58,234 +58,55 @@ export default function NotificationsPage() {
   const [lastIndex, setLastIndex] = useState('');
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  // Fetch Notifications
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (loadMore = false) => {
     try {
-      setIsLoading(true);
-      const notificationData = await getNotifications({
+      if (loadMore) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+      }
+  
+      const params = {
         PublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
         NumToFetch: 25,
-        FetchStartIndex: -1,
+        FetchStartIndex: loadMore ? lastIndex : -1,
+      };
+  
+      const notificationData = await getNotifications(params);
+      
+      const newNotifications = notificationData.Notifications.map(notification => {
+        const transactorPublicKey = notification.Metadata?.TransactorPublicKeyBase58Check || null;
+        const parentPostHash = notification.Metadata.SubmitPostTxindexMetadata?.ParentPostHashHex ||
+          notification.Metadata.BasicTransferTxindexMetadata?.PostHashHex;
+        const modifiedPostHash = notification.Metadata.SubmitPostTxindexMetadata?.PostHashBeingModifiedHex;
+        const reactedPostHash = notification.Metadata.LikeTxindexMetadata?.PostHashHex ||
+          notification.Metadata.CreatePostAssociationTxindexMetadata?.PostHashHex;
+  
+        return {
+          notification,
+          relatedParentPost: parentPostHash ? notificationData.PostsByHash[parentPostHash] : null,
+          relatedModifiedPost: modifiedPostHash ? notificationData.PostsByHash[modifiedPostHash] : null,
+          reactedPost: reactedPostHash ? notificationData.PostsByHash[reactedPostHash] : null,
+          transactorProfile: transactorPublicKey ? notificationData.ProfilesByPublicKey[transactorPublicKey] : null,
+        };
       });
-
-      setLastIndex(notificationData.Notifications[notificationData.Notifications.length - 1].Index);
-      // Initialize an array to store matched notifications with related posts and profiles
-      const matchedNotifications = [];
-
-      // Check if notifications is defined
-      if (notificationData.Notifications) {
-        // Iterate through Notifications while maintaining the original order
-        for (const notification of notificationData.Notifications) {
-          try {
-            const transactorPublicKey =
-              notification.Metadata?.TransactorPublicKeyBase58Check || null;
-            if (transactorPublicKey) {
-              // Check if the transactor is blocked
-              const didBlock = await getUserAssociations({
-                TargetUserPublicKeyBase58Check: transactorPublicKey,
-                TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
-                AssociationType: 'BLOCK',
-                AssociationValue: 'BLOCK',
-              });
-
-              if (didBlock.Associations[0]?.AssociationID) {
-                // If transactor is blocked, skip this notification
-                continue;
-              }
-            }
-
-            const parentPostHash =
-              notification.Metadata.SubmitPostTxindexMetadata?.ParentPostHashHex ||
-              notification.Metadata.BasicTransferTxindexMetadata?.PostHashHex;
-            const modifiedPostHash =
-              notification.Metadata.SubmitPostTxindexMetadata?.PostHashBeingModifiedHex;
-            const reactedPostHash =
-              notification.Metadata.LikeTxindexMetadata?.PostHashHex ||
-              notification.Metadata.CreatePostAssociationTxindexMetadata?.PostHashHex;
-
-            if (parentPostHash || modifiedPostHash || reactedPostHash) {
-              const relatedParentPost = parentPostHash
-                ? notificationData.PostsByHash[parentPostHash]
-                : null;
-              const relatedModifiedPost = modifiedPostHash
-                ? notificationData.PostsByHash[modifiedPostHash]
-                : null;
-              const reactedPost = reactedPostHash
-                ? notificationData.PostsByHash[reactedPostHash]
-                : null;
-
-              let matchedNotification = matchedNotifications.find(
-                (item) => item.notification === notification
-              );
-
-              if (!matchedNotification) {
-                matchedNotification = {
-                  notification,
-                  relatedParentPost: null,
-                  relatedModifiedPost: null,
-                  reactedPost: null,
-                  relatedProfiles: [],
-                };
-                matchedNotifications.push(matchedNotification);
-              }
-
-              if (relatedParentPost) {
-                matchedNotification.relatedParentPost = relatedParentPost;
-              }
-              if (relatedModifiedPost) {
-                matchedNotification.relatedModifiedPost = relatedModifiedPost;
-              }
-              if (reactedPostHash) {
-                matchedNotification.reactedPost = reactedPost;
-              }
-            }
-
-            if (transactorPublicKey) {
-              const transactorProfile = notificationData.ProfilesByPublicKey[transactorPublicKey];
-
-              let matchedNotification = matchedNotifications.find(
-                (item) => item.notification === notification
-              );
-
-              if (!matchedNotification) {
-                matchedNotification = {
-                  notification,
-                  transactorProfile: null,
-                };
-                matchedNotifications.push(matchedNotification);
-              }
-
-              matchedNotification.transactorProfile = transactorProfile;
-            }
-          } catch (error) {
-            console.error('Error processing notification:', notification);
-            console.error('Error details:', error);
-          }
-        }
+  
+      if (loadMore) {
+        setNotifications(prevNotifications => [...prevNotifications, ...newNotifications]);
+      } else {
+        setNotifications(newNotifications);
       }
-
-      setNotifications(matchedNotifications);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error fetching user notifications:', error);
-      setIsLoading(false);
-    }
-  };
-
-  // Fetch More Notifications
-  const fetchMoreNotifications = async () => {
-    try {
-      setIsLoadingMore(true);
-      const notificationData = await getNotifications({
-        PublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
-        NumToFetch: 25,
-        FetchStartIndex: lastIndex,
-      });
-
+  
       setLastIndex(notificationData.Notifications[notificationData.Notifications.length - 1].Index);
-      // Initialize an array to store matched notifications with related posts and profiles
-      const matchedNotifications = [];
-
-      // Check if notifications is defined
-      if (notificationData.Notifications) {
-        // Iterate through Notifications while maintaining the original order
-        for (const notification of notificationData.Notifications) {
-          try {
-            const transactorPublicKey =
-              notification.Metadata?.TransactorPublicKeyBase58Check || null;
-            if (transactorPublicKey) {
-              // Check if the transactor is blocked
-              const didBlock = await getUserAssociations({
-                TargetUserPublicKeyBase58Check: transactorPublicKey,
-                TransactorPublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
-                AssociationType: 'BLOCK',
-                AssociationValue: 'BLOCK',
-              });
-
-              if (didBlock.Associations[0]?.AssociationID) {
-                // If transactor is blocked, skip this notification
-                continue;
-              }
-            }
-
-            const parentPostHash =
-              notification.Metadata.SubmitPostTxindexMetadata?.ParentPostHashHex ||
-              notification.Metadata.BasicTransferTxindexMetadata?.PostHashHex;
-            const modifiedPostHash =
-              notification.Metadata.SubmitPostTxindexMetadata?.PostHashBeingModifiedHex;
-            const reactedPostHash =
-              notification.Metadata.LikeTxindexMetadata?.PostHashHex ||
-              notification.Metadata.CreatePostAssociationTxindexMetadata?.PostHashHex;
-
-            if (parentPostHash || modifiedPostHash || reactedPostHash) {
-              const relatedParentPost = parentPostHash
-                ? notificationData.PostsByHash[parentPostHash]
-                : null;
-              const relatedModifiedPost = modifiedPostHash
-                ? notificationData.PostsByHash[modifiedPostHash]
-                : null;
-              const reactedPost = reactedPostHash
-                ? notificationData.PostsByHash[reactedPostHash]
-                : null;
-
-              let matchedNotification = matchedNotifications.find(
-                (item) => item.notification === notification
-              );
-
-              if (!matchedNotification) {
-                matchedNotification = {
-                  notification,
-                  relatedParentPost: null,
-                  relatedModifiedPost: null,
-                  reactedPost: null,
-                  relatedProfiles: [],
-                };
-                matchedNotifications.push(matchedNotification);
-              }
-
-              if (relatedParentPost) {
-                matchedNotification.relatedParentPost = relatedParentPost;
-              }
-              if (relatedModifiedPost) {
-                matchedNotification.relatedModifiedPost = relatedModifiedPost;
-              }
-              if (reactedPostHash) {
-                matchedNotification.reactedPost = reactedPost;
-              }
-            }
-
-            if (transactorPublicKey) {
-              const transactorProfile = notificationData.ProfilesByPublicKey[transactorPublicKey];
-
-              let matchedNotification = matchedNotifications.find(
-                (item) => item.notification === notification
-              );
-
-              if (!matchedNotification) {
-                matchedNotification = {
-                  notification,
-                  transactorProfile: null,
-                };
-                matchedNotifications.push(matchedNotification);
-              }
-
-              matchedNotification.transactorProfile = transactorProfile;
-            }
-          } catch (error) {
-            console.error('Error processing notification:', notification);
-            console.error('Error details:', error);
-          }
-        }
-      }
-
-      setNotifications((prevNotifications) => [...prevNotifications, ...matchedNotifications]);
-
+      setIsLoading(false);
       setIsLoadingMore(false);
     } catch (error) {
-      console.error('Error fetching user notifications:', error);
+      console.error('Error fetching notifications:', error);
+      setIsLoading(false);
       setIsLoadingMore(false);
     }
   };
+  
 
   useEffect(() => {
     if (currentUser) {
@@ -1003,7 +824,7 @@ export default function NotificationsPage() {
                       <>
                         <Space h="md" />
                         <Center>
-                          <Button onClick={fetchMoreNotifications}>Load More</Button>
+                          <Button onClick={fetchNotifications}>Load More</Button>
                         </Center>
                       </>
                     )}
@@ -1078,7 +899,7 @@ export default function NotificationsPage() {
                   <>
                     <Space h="md" />
                     <Center>
-                      <Button onClick={fetchMoreNotifications}>Load More</Button>
+                      <Button onClick={fetchNotifications}>Load More</Button>
                     </Center>
                   </>
                 )}
@@ -1163,7 +984,7 @@ export default function NotificationsPage() {
                   <>
                     <Space h="md" />
                     <Center>
-                      <Button onClick={fetchMoreNotifications}>Load More</Button>
+                      <Button onClick={fetchNotifications}>Load More</Button>
                     </Center>
                   </>
                 )}
@@ -1318,7 +1139,7 @@ export default function NotificationsPage() {
                   <>
                     <Space h="md" />
                     <Center>
-                      <Button onClick={fetchMoreNotifications}>Load More</Button>
+                      <Button onClick={fetchNotifications}>Load More</Button>
                     </Center>
                   </>
                 )}
@@ -1423,7 +1244,7 @@ export default function NotificationsPage() {
                   <>
                     <Space h="md" />
                     <Center>
-                      <Button onClick={fetchMoreNotifications}>Load More</Button>
+                      <Button onClick={fetchNotifications}>Load More</Button>
                     </Center>
                   </>
                 )}
@@ -1515,7 +1336,7 @@ export default function NotificationsPage() {
                   <>
                     <Space h="md" />
                     <Center>
-                      <Button onClick={fetchMoreNotifications}>Load More</Button>
+                      <Button onClick={fetchNotifications}>Load More</Button>
                     </Center>
                   </>
                 )}
@@ -1612,7 +1433,7 @@ export default function NotificationsPage() {
                   <>
                     <Space h="md" />
                     <Center>
-                      <Button onClick={fetchMoreNotifications}>Load More</Button>
+                      <Button onClick={fetchNotifications}>Load More</Button>
                     </Center>
                   </>
                 )}
@@ -1691,7 +1512,7 @@ export default function NotificationsPage() {
                   <>
                     <Space h="md" />
                     <Center>
-                      <Button onClick={fetchMoreNotifications}>Load More</Button>
+                      <Button onClick={fetchNotifications}>Load More</Button>
                     </Center>
                   </>
                 )}
@@ -1774,7 +1595,7 @@ export default function NotificationsPage() {
                   <>
                     <Space h="md" />
                     <Center>
-                      <Button onClick={fetchMoreNotifications}>Load More</Button>
+                      <Button onClick={fetchNotifications}>Load More</Button>
                     </Center>
                   </>
                 )}
