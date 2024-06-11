@@ -30,7 +30,7 @@ import { useRouter } from 'next/router';
 import { BiSolidDownArrow } from 'react-icons/bi';
 import { identity, getPostAssociations, getSinglePost } from 'deso-protocol';
 import { GrEmoji } from 'react-icons/gr';
-import classes from './MantineAppShell/MantineAppShell.module.css'
+import classes from './MantineAppShell/MantineAppShell.module.css';
 
 export const Chat = ({ handle }) => {
   const [messages, setMessages] = useState([]);

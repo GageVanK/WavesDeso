@@ -13,22 +13,21 @@ export const HotFeed = () => {
 
   const fetchHotFeed = async (loadMore = false) => {
     try {
-
       if (loadMore) {
         setIsLoadingMore(true);
       } else {
         setIsLoading(true);
       }
-  
+
       const params = {
         ResponseLimit: 30,
-        SeenPosts: loadMore ? hotFeed.map(post => post.PostHashHex) : []
+        SeenPosts: loadMore ? hotFeed.map((post) => post.PostHashHex) : [],
       };
-  
+
       const newFeedData = await getHotFeed(params);
-  
-      console.log("newFeedData", newFeedData);
-  
+
+      console.log('newFeedData', newFeedData);
+
       let postsToSet = newFeedData.HotFeedPage;
 
       if (currentUser) {
@@ -40,7 +39,7 @@ export const HotFeed = () => {
               AssociationType: 'BLOCK',
               AssociationValue: 'BLOCK',
             });
-  
+
             if (!didBlock.Associations[0]?.AssociationID) {
               return post;
             } else {
@@ -48,28 +47,28 @@ export const HotFeed = () => {
             }
           })
         );
-  
+
         const filteredAndCleanedPosts = postsWithoutBlocked.filter((post) => post !== null);
-  
+
         if (filteredAndCleanedPosts.length === 0) {
           postsToSet = newFeedData.HotFeedPage;
         } else {
           postsToSet = filteredAndCleanedPosts;
         }
       }
-  
+
       if (loadMore) {
         setHotFeed((prevPosts) => [...prevPosts, ...postsToSet]);
       } else {
         setHotFeed(postsToSet);
       }
-  
+
       if (postsToSet.length > 0) {
         setLastSeenPostHash(postsToSet[postsToSet.length - 1].PostHashHex);
       } else {
         setLastSeenPostHash(null);
       }
-  
+
       if (loadMore) {
         setIsLoadingMore(false);
       } else {
@@ -81,9 +80,6 @@ export const HotFeed = () => {
       setIsLoadingMore(false);
     }
   };
-  
-
-
 
   useEffect(() => {
     fetchHotFeed();
@@ -101,13 +97,11 @@ export const HotFeed = () => {
           </>
         ) : (
           <>
-
-            {hotFeed
-              ?.map((post, index) => (
-                <Container size={777} px={0} key={index}>
-                  <Post post={post} username={post.ProfileEntryResponse?.Username} />
-                </Container>
-              ))}
+            {hotFeed?.map((post, index) => (
+              <Container size={777} px={0} key={index}>
+                <Post post={post} username={post.ProfileEntryResponse?.Username} />
+              </Container>
+            ))}
 
             {isLoadingMore ? (
               <>

@@ -7,7 +7,7 @@ import {
   useMantineTheme,
   Text,
   Stack,
-  Paper
+  Paper,
 } from '@mantine/core';
 import { useState } from 'react';
 import { getProfiles } from 'deso-protocol';

@@ -69,9 +69,7 @@ export function MantineFooter() {
           }}
         >
           <ActionIcon
-
             size={55}
-
             radius={100}
             variant="default"
             className={classes.link}

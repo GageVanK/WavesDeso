@@ -1,11 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import {
-  Container,
-  Loader,
-  Center,
-  Button,
-  Space
-} from '@mantine/core';
+import { Container, Loader, Center, Button, Space } from '@mantine/core';
 import { getPostsStateless, getUserAssociations } from 'deso-protocol';
 import { DeSoIdentityContext } from 'react-deso-protocol';
 import Post from '../Post'; // Adjust the import according to your file structure
@@ -28,13 +22,13 @@ export const NewFeed = () => {
       const params = {
         NumToFetch: 30,
         MediaRequired: true,
-        ReaderPublicKeyBase58Check: currentUser ? currentUser.PublicKeyBase58Check : "",
-        PostHashHex: loadMore ? lastSeenPostHash : "",
+        ReaderPublicKeyBase58Check: currentUser ? currentUser.PublicKeyBase58Check : '',
+        PostHashHex: loadMore ? lastSeenPostHash : '',
       };
 
       const newFeedData = await getPostsStateless(params);
 
-      console.log("newFeedData", newFeedData);
+      console.log('newFeedData', newFeedData);
 
       let postsToSet = newFeedData.PostsFound;
 
@@ -104,12 +98,11 @@ export const NewFeed = () => {
         </>
       ) : (
         <>
-          {newFeed
-            ?.map((post, index) => (
-              <Container size={777} px={0} key={index}>
-                <Post post={post} username={post.ProfileEntryResponse?.Username} />
-              </Container>
-            ))}
+          {newFeed?.map((post, index) => (
+            <Container size={777} px={0} key={index}>
+              <Post post={post} username={post.ProfileEntryResponse?.Username} />
+            </Container>
+          ))}
 
           {isLoadingMore ? (
             <>

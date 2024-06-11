@@ -1,5 +1,3 @@
-
-  
-  .link {
-    background-color: light-dark("white", #070707) !important;
-  }
+.link {
+  background-color: light-dark('white', #070707) !important;
+}

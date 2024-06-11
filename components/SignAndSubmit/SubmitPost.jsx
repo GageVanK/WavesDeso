@@ -979,7 +979,7 @@ export const SignAndSubmitTx = ({ close }) => {
                     : 0) <=
                   100
               )
-            }            
+            }
             loading={isLoadingPost}
           >
             Create

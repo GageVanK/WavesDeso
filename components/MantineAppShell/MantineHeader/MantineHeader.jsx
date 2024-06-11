@@ -109,7 +109,7 @@ export function MantineHeader() {
         <Search close={closeSearch} />
       </Modal>
 
-      <Box> 
+      <Box>
         <header className={classes.header}>
           <Group justify="space-between" h="100%">
             <Group ml={22}>
@@ -128,11 +128,11 @@ export function MantineHeader() {
             </Group>
 
             <Group h="100%" visibleFrom="sm" justify="center">
-            <Search close={closeSearch} />
+              <Search close={closeSearch} />
             </Group>
 
             <Group visibleFrom="sm" mr={22}>
-            {currentUser && (
+              {currentUser && (
                 <Tooltip label="Create Post">
                   <ActionIcon onClick={openCreate} variant="subtle" size="lg" radius="xl">
                     <BsPlusCircleDotted size="1.3rem" />
@@ -140,22 +140,20 @@ export function MantineHeader() {
                 </Tooltip>
               )}
 
-        
-
               <Menu opened={opened} onChange={setOpened} offset={2} shadow="md" withArrow>
                 <Tooltip label="Notifications" withArrow position="bottom" offset={3}>
                   <Menu.Target>
                     <ActionIcon
                       variant="subtle"
                       size="lg"
-                       radius="xl"
+                      radius="xl"
                       aria-label="Notification Button"
                       onClick={() => {
                         resetUnreadNotifications();
                         setOpened(true);
                       }}
                     >
-                      <IconBellRinging size="1.3rem" strokeWidth={1.2}/>
+                      <IconBellRinging size="1.3rem" strokeWidth={1.2} />
 
                       {currentUser && unreadNotifs > 0 && (
                         <Text fz="sm" fw={700} c="red">
@@ -183,18 +181,13 @@ export function MantineHeader() {
                   </Group>
 
                   <ScrollArea h={555}>
-                  
-                      <NotificationsPage />
-                    
+                    <NotificationsPage />
                   </ScrollArea>
                 </Menu.Dropdown>
               </Menu>
 
-          
-
               <ColorSchemeToggle />
-         
-             
+
               {!currentUser && (!alternateUsers || alternateUsers.length === 0) && (
                 <>
                   <Button variant="default" onClick={() => identity.login()}>
@@ -309,12 +302,10 @@ export function MantineHeader() {
               )}
             </Group>
 
-              <Group gap='xs' hiddenFrom="sm" >
-              
+            <Group gap="xs" hiddenFrom="sm">
               <ColorSchemeToggle />
               <Burger opened={drawerOpened} onClick={toggleDrawer} />
-              </Group>
-         
+            </Group>
           </Group>
         </header>
 

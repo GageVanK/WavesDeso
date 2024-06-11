@@ -17,7 +17,6 @@
 }
 
 .aside {
-
   flex: 0 0 rem(60px);
   background-color: light-dark(var(--mantine-color-white), #070707);
   display: flex;
@@ -54,9 +53,7 @@
 }
 
 .title {
-  font-family:
-    Greycliff CF,
-    var(--mantine-font-family);
+  font-family: Greycliff CF, var(--mantine-font-family);
   margin-bottom: var(--mantine-spacing-xl);
   background-color: var(--mantine-color-body);
   padding: var(--mantine-spacing-md);
@@ -64,7 +61,6 @@
   height: rem(60px);
   border-bottom: rem(1px) solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-7));
 }
-
 
 .link {
   display: block;

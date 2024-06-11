@@ -63,11 +63,10 @@ import {
   IconHeartBroken,
   IconUserMinus,
   IconUserPlus,
-  
 } from '@tabler/icons-react';
 import { TiInfoLargeOutline } from 'react-icons/ti';
 import { Player } from '@livepeer/react';
-import { useDisclosure, useHover} from '@mantine/hooks';
+import { useDisclosure, useHover } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { BsChatQuoteFill, BsInfoCircleFill } from 'react-icons/bs';
 import { FaVoteYea, FaPoll } from 'react-icons/fa';
@@ -85,7 +84,6 @@ import { SubscriptionModal } from './SubscriptionModal';
 import { NftModal } from './NftModal';
 import { getEmbedHeight, getEmbedURL, getEmbedWidth, isValidEmbedURL } from '../helpers/EmbedUrls';
 import { GoBlocked } from 'react-icons/go';
-
 
 export default function Post({ post, username }) {
   const { hovered, ref } = useHover();
@@ -1393,7 +1391,7 @@ export default function Post({ post, username }) {
               {(props) => (
                 <Tooltip label="Upload Image">
                   <ActionIcon
-                  disabled={!currentUser}
+                    disabled={!currentUser}
                     color="blue"
                     size="lg"
                     variant="default"
@@ -1408,7 +1406,7 @@ export default function Post({ post, username }) {
 
             <Tooltip label="Add Poll">
               <ActionIcon
-              disabled={!currentUser}
+                disabled={!currentUser}
                 color="blue"
                 size="lg"
                 variant="default"
@@ -1421,7 +1419,7 @@ export default function Post({ post, username }) {
 
             <Tooltip label="Embed">
               <ActionIcon
-              disabled={!currentUser}
+                disabled={!currentUser}
                 color="blue"
                 size="lg"
                 variant="default"
@@ -1447,11 +1445,14 @@ export default function Post({ post, username }) {
               }}
               loading={isLoadingPost}
               disabled={
-                !(quoteBody.trim() || imageURL.length > 0 || embedUrl || (poll && pollOptions.filter((option) => option.trim() !== '').length >= 2)) ||
+                !(
+                  quoteBody.trim() ||
+                  imageURL.length > 0 ||
+                  embedUrl ||
+                  (poll && pollOptions.filter((option) => option.trim() !== '').length >= 2)
+                ) ||
                 isLoadingPost ||
                 !currentUser
-                
-
               }
             >
               Quote
@@ -1465,266 +1466,240 @@ export default function Post({ post, username }) {
         <></>
       ) : (
         <Card m="md" shadow="lg" radius="md" p="xs" withBorder className={classes.theme}>
-              <Group justify="space-between" mb={10}>
-                <Group>
-                  <HoverCard width={333} shadow="md" position="right">
-                    <HoverCard.Target>
-                      <UnstyledButton
-                        component={Link}
-                        href={`/wave/${username}`}
-                        style={{ display: 'flex', alignItems: 'center' }}
-                      >
-                        <Avatar
-                          radius="sm"
-                          size="lg"
-                          src={
-                            post?.ProfileEntryResponse?.ExtraData?.LargeProfilePicURL ||
-                            `https://node.deso.org/api/v0/get-single-profile-picture/${
-                              post?.ProfileEntryResponse?.PublicKeyBase58Check ||
-                              post?.PosterPublicKeyBase58Check
-                            }` ||
-                            null
-                          }
-                        />
+          <Group justify="space-between" mb={10}>
+            <Group>
+              <HoverCard width={333} shadow="md" position="right">
+                <HoverCard.Target>
+                  <UnstyledButton
+                    component={Link}
+                    href={`/wave/${username}`}
+                    style={{ display: 'flex', alignItems: 'center' }}
+                  >
+                    <Avatar
+                      radius="sm"
+                      size="lg"
+                      src={
+                        post?.ProfileEntryResponse?.ExtraData?.LargeProfilePicURL ||
+                        `https://node.deso.org/api/v0/get-single-profile-picture/${
+                          post?.ProfileEntryResponse?.PublicKeyBase58Check ||
+                          post?.PosterPublicKeyBase58Check
+                        }` ||
+                        null
+                      }
+                    />
 
-                        <Space w="xs" />
-                        <div>
-                          <Box w={111}>
-                            <Text fw={500} size="sm" truncate="end">
-                              {post?.ProfileEntryResponse?.ExtraData?.DisplayName || username}
-                            </Text>
-                          </Box>
-                          <Text size="xs" truncate="end">
-                            @{username}
-                          </Text>
-                        </div>
-                      </UnstyledButton>
-                    </HoverCard.Target>
-
-                    <HoverCard.Dropdown width={280} shadow="md">
-                      <Group justify="space-between">
-                        <Avatar
-                          radius="sm"
-                          size="xl"
-                          src={
-                            post?.ProfileEntryResponse?.ExtraData?.LargeProfilePicURL ||
-                            `https://node.deso.org/api/v0/get-single-profile-picture/${
-                              post?.ProfileEntryResponse?.PublicKeyBase58Check ||
-                              post?.PosterPublicKeyBase58Check
-                            }` ||
-                            null
-                          }
-                        />
-
-                        {currentUser && currentUser.ProfileEntryResponse?.Username !== username ? (
-                          <>
-                            {isFollowingUser ? (
-                              <Tooltip
-                                label={`Unfollow @${username}`}
-                                withArrow
-                                arrowPosition="center"
-                              >
-                                <ActionIcon
-                                  variant="default"
-                                  size={36}
-                                  onClick={unfollowUser}
-                                  mb={22}
-                                >
-                                  <RiUserUnfollowLine size="1.2rem" stroke={1.5} />
-                                </ActionIcon>
-                              </Tooltip>
-                            ) : (
-                              <Tooltip
-                                label={`Follow @${username}`}
-                                withArrow
-                                arrowPosition="center"
-                              >
-                                <ActionIcon
-                                  variant="default"
-                                  size={36}
-                                  onClick={followUser}
-                                  mb={22}
-                                >
-                                  <RiUserAddLine size="1.2rem" stroke={1.5} />
-                                </ActionIcon>
-                              </Tooltip>
-                            )}
-                          </>
-                        ) : null}
-                      </Group>
-                      <Space h="xs" />
-
-                      <Box w={255}>
-                        <Text fw={500} truncate="end">
+                    <Space w="xs" />
+                    <div>
+                      <Box w={111}>
+                        <Text fw={500} size="sm" truncate="end">
                           {post?.ProfileEntryResponse?.ExtraData?.DisplayName || username}
                         </Text>
                       </Box>
                       <Text size="xs" truncate="end">
                         @{username}
                       </Text>
+                    </div>
+                  </UnstyledButton>
+                </HoverCard.Target>
 
-                      <Space h="xl" />
+                <HoverCard.Dropdown width={280} shadow="md">
+                  <Group justify="space-between">
+                    <Avatar
+                      radius="sm"
+                      size="xl"
+                      src={
+                        post?.ProfileEntryResponse?.ExtraData?.LargeProfilePicURL ||
+                        `https://node.deso.org/api/v0/get-single-profile-picture/${
+                          post?.ProfileEntryResponse?.PublicKeyBase58Check ||
+                          post?.PosterPublicKeyBase58Check
+                        }` ||
+                        null
+                      }
+                    />
 
-                      <Text
-                        fz="sm"
-                        style={{
-                          maxWidth: '100%',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'wrap',
-                        }}
-                        dangerouslySetInnerHTML={{
-                          __html: post?.ProfileEntryResponse?.Description
-                            ? replaceURLs(post?.ProfileEntryResponse?.Description).replace(
-                                /\n/g,
-                                '<br>'
-                              )
-                            : '',
-                        }}
-                      />
-                      <Space h="sm" />
-                      <Group grow>
-                        <SubscriptionModal
-                          publickey={post?.PosterPublicKeyBase58Check}
-                          username={username}
-                        />
-                      </Group>
-                    </HoverCard.Dropdown>
-                  </HoverCard>
-                </Group>
+                    {currentUser && currentUser.ProfileEntryResponse?.Username !== username ? (
+                      <>
+                        {isFollowingUser ? (
+                          <Tooltip label={`Unfollow @${username}`} withArrow arrowPosition="center">
+                            <ActionIcon variant="default" size={36} onClick={unfollowUser} mb={22}>
+                              <RiUserUnfollowLine size="1.2rem" stroke={1.5} />
+                            </ActionIcon>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip label={`Follow @${username}`} withArrow arrowPosition="center">
+                            <ActionIcon variant="default" size={36} onClick={followUser} mb={22}>
+                              <RiUserAddLine size="1.2rem" stroke={1.5} />
+                            </ActionIcon>
+                          </Tooltip>
+                        )}
+                      </>
+                    ) : null}
+                  </Group>
+                  <Space h="xs" />
 
-                <Group gap="xs">
-                  <Text c="dimmed" size="xs" fw={500}>
-                    {formatDate(post?.TimestampNanos)} ago
+                  <Box w={255}>
+                    <Text fw={500} truncate="end">
+                      {post?.ProfileEntryResponse?.ExtraData?.DisplayName || username}
+                    </Text>
+                  </Box>
+                  <Text size="xs" truncate="end">
+                    @{username}
                   </Text>
+
+                  <Space h="xl" />
+
+                  <Text
+                    fz="sm"
+                    style={{
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'wrap',
+                    }}
+                    dangerouslySetInnerHTML={{
+                      __html: post?.ProfileEntryResponse?.Description
+                        ? replaceURLs(post?.ProfileEntryResponse?.Description).replace(
+                            /\n/g,
+                            '<br>'
+                          )
+                        : '',
+                    }}
+                  />
+                  <Space h="sm" />
+                  <Group grow>
+                    <SubscriptionModal
+                      publickey={post?.PosterPublicKeyBase58Check}
+                      username={username}
+                    />
+                  </Group>
+                </HoverCard.Dropdown>
+              </HoverCard>
+            </Group>
+
+            <Group gap="xs">
+              <Text c="dimmed" size="xs" fw={500}>
+                {formatDate(post?.TimestampNanos)} ago
+              </Text>
+              {currentUser &&
+                (isBookmarked || didBookmarkId ? (
+                  <Tooltip label="Remove Bookmark">
+                    <ActionIcon size="md" variant="subtle" onClick={() => handleRemoveBookmark()}>
+                      <GoBookmarkFill style={{ width: rem(20), height: rem(20) }} />
+                    </ActionIcon>
+                  </Tooltip>
+                ) : (
+                  <Tooltip label="Bookmark">
+                    <ActionIcon size="md" variant="subtle" onClick={() => handleBookmark()}>
+                      <GoBookmark style={{ width: rem(20), height: rem(20) }} />
+                    </ActionIcon>
+                  </Tooltip>
+                ))}
+
+              <Menu shadow="md" width={177}>
+                <Menu.Target>
+                  <ActionIcon color="blue" size="md" variant="transparent">
+                    <IconDotsVertical />
+                  </ActionIcon>
+                </Menu.Target>
+
+                <Menu.Dropdown>
+                  <Menu.Item
+                    leftSection={<IconMessageShare style={{ width: rem(16), height: rem(16) }} />}
+                    component={Link}
+                    href={`/posts/${post?.PostHashHex}`}
+                  >
+                    {post?.IsNFT ? 'View NFT' : 'View Post'}
+                  </Menu.Item>
+
+                  {!post?.IsNFT &&
+                    currentUser &&
+                    currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check && (
+                      <Menu.Item
+                        onClick={openNft}
+                        leftSection={<RiNftLine style={{ width: rem(16), height: rem(16) }} />}
+                      >
+                        Mint NFT
+                      </Menu.Item>
+                    )}
                   {currentUser &&
-                    (isBookmarked || didBookmarkId ? (
-                      <Tooltip label="Remove Bookmark">
-                        <ActionIcon
-                          size="md"
-                          variant="subtle"
-                          onClick={() => handleRemoveBookmark()}
-                        >
-                          <GoBookmarkFill style={{ width: rem(20), height: rem(20) }} />
-                        </ActionIcon>
-                      </Tooltip>
+                    currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check && (
+                      <Menu.Item
+                        onClick={openEdit}
+                        leftSection={<FiEdit style={{ width: rem(16), height: rem(16) }} />}
+                      >
+                        Edit
+                      </Menu.Item>
+                    )}
+
+                  {currentUser &&
+                    currentUser?.PublicKeyBase58Check !== post?.PosterPublicKeyBase58Check &&
+                    (isCloseFriend || didCloseFriendId ? (
+                      <Menu.Item
+                        onClick={() => handleRemoveCloseFriend()}
+                        leftSection={
+                          <PiUserCircleMinus style={{ width: rem(16), height: rem(16) }} />
+                        }
+                      >
+                        Remove
+                      </Menu.Item>
                     ) : (
-                      <Tooltip label="Bookmark">
-                        <ActionIcon size="md" variant="subtle" onClick={() => handleBookmark()}>
-                          <GoBookmark style={{ width: rem(20), height: rem(20) }} />
-                        </ActionIcon>
-                      </Tooltip>
+                      <Menu.Item
+                        onClick={() => handleAddCloseFriend()}
+                        leftSection={
+                          <PiUserCirclePlus style={{ width: rem(16), height: rem(16) }} />
+                        }
+                      >
+                        Add Close Friend
+                      </Menu.Item>
                     ))}
 
-                  <Menu shadow="md" width={177}>
-                    <Menu.Target>
-                      <ActionIcon color="blue" size="md" variant="transparent">
-                        <IconDotsVertical />
-                      </ActionIcon>
-                    </Menu.Target>
-
-                    <Menu.Dropdown>
+                  {currentUser &&
+                    currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check &&
+                    (didPinPost ||
+                    currentUser?.ProfileEntryResponse?.ExtraData?.PinnedPostHashHex ===
+                      post?.PostHashHex ? (
                       <Menu.Item
-                        leftSection={
-                          <IconMessageShare style={{ width: rem(16), height: rem(16) }} />
-                        }
-                        component={Link}
-                        href={`/posts/${post?.PostHashHex}`}
+                        onClick={() => handleUnpinPost(post?.PostHashHex)}
+                        leftSection={<TbPinnedOff style={{ width: rem(16), height: rem(16) }} />}
                       >
-                        {post?.IsNFT ? 'View NFT' : 'View Post'}
+                        {post?.IsNFT ? 'Unpin NFT' : 'Unpin Post'}
                       </Menu.Item>
+                    ) : (
+                      <Menu.Item
+                        onClick={() => handlePinPost(post?.PostHashHex)}
+                        leftSection={<TbPinned style={{ width: rem(16), height: rem(16) }} />}
+                      >
+                        {post?.IsNFT ? 'Pin NFT' : 'Pin Post'}
+                      </Menu.Item>
+                    ))}
 
-                      {!post?.IsNFT &&
-                        currentUser &&
-                        currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check && (
-                          <Menu.Item
-                            onClick={openNft}
-                            leftSection={<RiNftLine style={{ width: rem(16), height: rem(16) }} />}
-                          >
-                            Mint NFT
-                          </Menu.Item>
-                        )}
-                      {currentUser &&
-                        currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check && (
-                          <Menu.Item
-                            onClick={openEdit}
-                            leftSection={<FiEdit style={{ width: rem(16), height: rem(16) }} />}
-                          >
-                            Edit
-                          </Menu.Item>
-                        )}
+                  {currentUser &&
+                    currentUser?.PublicKeyBase58Check !== post?.PosterPublicKeyBase58Check && (
+                      <Menu.Item
+                        color="red"
+                        onClick={handleBlock}
+                        leftSection={<GoBlocked style={{ width: rem(16), height: rem(16) }} />}
+                      >
+                        Block
+                      </Menu.Item>
+                    )}
 
-                      {currentUser &&
-                        currentUser?.PublicKeyBase58Check !== post?.PosterPublicKeyBase58Check &&
-                        (isCloseFriend || didCloseFriendId ? (
-                          <Menu.Item
-                            onClick={() => handleRemoveCloseFriend()}
-                            leftSection={
-                              <PiUserCircleMinus style={{ width: rem(16), height: rem(16) }} />
-                            }
-                          >
-                            Remove
-                          </Menu.Item>
-                        ) : (
-                          <Menu.Item
-                            onClick={() => handleAddCloseFriend()}
-                            leftSection={
-                              <PiUserCirclePlus style={{ width: rem(16), height: rem(16) }} />
-                            }
-                          >
-                            Add Close Friend
-                          </Menu.Item>
-                        ))}
-
-                      {currentUser &&
-                        currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check &&
-                        (didPinPost ||
-                        currentUser?.ProfileEntryResponse?.ExtraData?.PinnedPostHashHex ===
-                          post?.PostHashHex ? (
-                          <Menu.Item
-                            onClick={() => handleUnpinPost(post?.PostHashHex)}
-                            leftSection={
-                              <TbPinnedOff style={{ width: rem(16), height: rem(16) }} />
-                            }
-                          >
-                            {post?.IsNFT ? 'Unpin NFT' : 'Unpin Post'}
-                          </Menu.Item>
-                        ) : (
-                          <Menu.Item
-                            onClick={() => handlePinPost(post?.PostHashHex)}
-                            leftSection={<TbPinned style={{ width: rem(16), height: rem(16) }} />}
-                          >
-                            {post?.IsNFT ? 'Pin NFT' : 'Pin Post'}
-                          </Menu.Item>
-                        ))}
-
-                      {currentUser &&
-                        currentUser?.PublicKeyBase58Check !== post?.PosterPublicKeyBase58Check && (
-                          <Menu.Item
-                            color="red"
-                            onClick={handleBlock}
-                            leftSection={<GoBlocked style={{ width: rem(16), height: rem(16) }} />}
-                          >
-                            Block
-                          </Menu.Item>
-                        )}
-
-                      {currentUser &&
-                        currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check && (
-                          <Menu.Item
-                            color="red"
-                            onClick={openHide}
-                            leftSection={
-                              <MdDeleteForever style={{ width: rem(16), height: rem(16) }} />
-                            }
-                          >
-                            Hide
-                          </Menu.Item>
-                        )}
-                    </Menu.Dropdown>
-                  </Menu>
-                </Group>
-              </Group>
+                  {currentUser &&
+                    currentUser?.PublicKeyBase58Check === post?.PosterPublicKeyBase58Check && (
+                      <Menu.Item
+                        color="red"
+                        onClick={openHide}
+                        leftSection={
+                          <MdDeleteForever style={{ width: rem(16), height: rem(16) }} />
+                        }
+                      >
+                        Hide
+                      </Menu.Item>
+                    )}
+                </Menu.Dropdown>
+              </Menu>
+            </Group>
+          </Group>
           {(post?.PostExtraData?.EmbedVideoURL ||
             isWavesStream ||
             (post?.VideoURLs && post?.VideoURLs[0]) ||
@@ -1825,8 +1800,6 @@ export default function Post({ post, username }) {
 
           <Box style={{ display: 'flex', flexDirection: 'column', height: '100%' }} pl={10}>
             <Box style={{ flexGrow: 1 }}>
-          
-
               <Space h="lg" />
 
               {post?.Body && (
@@ -2007,8 +1980,8 @@ export default function Post({ post, username }) {
             <>
               <Space h="md" />
               <Textarea
-              disabled={!currentUser}
-                placeholder={!currentUser ? "Sign In to Comment." : "Enter your comment..."}
+                disabled={!currentUser}
+                placeholder={!currentUser ? 'Sign In to Comment.' : 'Enter your comment...'}
                 autosize
                 value={comment}
                 onChange={(event) => setComment(event.target.value)}
@@ -2110,7 +2083,6 @@ export default function Post({ post, username }) {
                   <Space h="xs" />
                   <Box w={222}>
                     <TextInput
-                    
                       leftSection={
                         <>
                           <Tooltip
@@ -2172,17 +2144,21 @@ export default function Post({ post, username }) {
                   onClick={() => submitComment()}
                   loading={isLoadingPost}
                   disabled={
-                    !(comment.trim() || imageURL.length > 0 || embedUrl || (poll && pollOptions.filter((option) => option.trim() !== '').length >= 2)) ||
-isLoadingPost ||
-!currentUser
-
+                    !(
+                      comment.trim() ||
+                      imageURL.length > 0 ||
+                      embedUrl ||
+                      (poll && pollOptions.filter((option) => option.trim() !== '').length >= 2)
+                    ) ||
+                    isLoadingPost ||
+                    !currentUser
                   }
                 >
                   Comment
                 </Button>
 
                 <FileButton
-                disabled={!currentUser}
+                  disabled={!currentUser}
                   onChange={setImageFile}
                   accept="image/png,image/jpeg,image/png,image.gif,image/webp"
                   resetRef={resetImageRef}
@@ -2191,7 +2167,7 @@ isLoadingPost ||
                   {(props) => (
                     <Tooltip label="Upload Image">
                       <ActionIcon
-                      disabled={!currentUser}
+                        disabled={!currentUser}
                         color="blue"
                         size="lg"
                         variant="default"
@@ -2206,7 +2182,7 @@ isLoadingPost ||
 
                 <Tooltip label="Add Poll">
                   <ActionIcon
-                  disabled={!currentUser}
+                    disabled={!currentUser}
                     color="blue"
                     size="lg"
                     variant="default"
@@ -2219,7 +2195,7 @@ isLoadingPost ||
 
                 <Tooltip label="Embed">
                   <ActionIcon
-                  disabled={!currentUser}
+                    disabled={!currentUser}
                     color="blue"
                     size="lg"
                     variant="default"

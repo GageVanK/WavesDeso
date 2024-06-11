@@ -38,6 +38,5 @@
 }
 
 .theme {
-  background-color: light-dark("white", #070707) !important;
+  background-color: light-dark('white', #070707) !important;
 }
-

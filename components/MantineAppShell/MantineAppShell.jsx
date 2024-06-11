@@ -13,7 +13,7 @@ import { MantineAside } from '@/components/MantineAppShell/MantineAside/MantineA
 import { MantineFooter } from '@/components/MantineAppShell/MantineFooter/MantineFooter';
 import { Chat } from '@/components/Chat';
 import { Spotlight } from '../Spotlight/Spotlight';
-import classes from './MantineAppShell.module.css'
+import classes from './MantineAppShell.module.css';
 export function MantineAppShell({ children }) {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
   const [opened, { open, close }] = useDisclosure(false);
@@ -75,8 +75,7 @@ export function MantineAppShell({ children }) {
         </AppShell.Header>
 
         <AppShell.Navbar className={classes.theme}>
-         
-          <MantineNavBar navOpened={navOpened} toggleNav={toggleNav}/>
+          <MantineNavBar navOpened={navOpened} toggleNav={toggleNav} />
         </AppShell.Navbar>
 
         <AppShell.Aside className={classes.theme}>
@@ -112,18 +111,15 @@ export function MantineAppShell({ children }) {
 
         <AppShell.Main>
           <Group justify="space-between">
-          {!navOpened && (
+            {!navOpened && (
               <Tooltip position="right-start" label="Open Navbar">
-                <Group
-                  justify="left"
-                >
+                <Group justify="left">
                   <ActionIcon variant="light" onClick={toggleNav} visibleFrom="sm">
                     <RiArrowRightDoubleLine />
                   </ActionIcon>
                 </Group>
               </Tooltip>
             )}
-           
 
             {!asideOpened && (
               <Tooltip position="right-start" label="Open Sidebar">
