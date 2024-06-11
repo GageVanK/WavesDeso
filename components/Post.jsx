@@ -347,7 +347,7 @@ export default function Post({ post, username }) {
         BodyObj: {
           Body: comment,
           VideoURLs: [],
-          ImageURLs: imageURL ? [imageURL] : [],
+          ImageURLs: imageURL,
         },
         PostExtraData: {
           EmbedVideoURL: embedUrl || '',
@@ -455,7 +455,7 @@ export default function Post({ post, username }) {
         BodyObj: {
           Body: quoteBody,
           VideoURLs: [],
-          ImageURLs: imageURL ? [imageURL] : [],
+          ImageURLs: imageURL,
         },
         PostExtraData: {
           EmbedVideoURL: embedUrl || '',
