@@ -150,7 +150,7 @@ export const Stream = () => {
         BodyObj: {
           Body: `${
             streamTitle || `${currentUser?.ProfileEntryResponse?.Username}'s Wave`
-          }\nTo Subscribe and ensure the best viewing experience, visit: \nhttps://desowaves.vercel.app/wave/${
+          }\nTo Subscribe and ensure the best viewing experience, visit: \nhttps://wavestv.app/wave/${
             currentUser.ProfileEntryResponse?.Username
           }`,
           VideoURLs: [`https://lvpr.tv/?v=${streamPlaybackId}`],
@@ -611,7 +611,7 @@ export const Stream = () => {
               </Tooltip>
 
               <CopyButton
-                value={`https://desowaves.vercel.app/wave/${currentUser.ProfileEntryResponse.Username}`}
+                value={`https://wavestv.app/wave/${currentUser.ProfileEntryResponse.Username}`}
                 timeout={2000}
               >
                 {({ copied, copy }) => (

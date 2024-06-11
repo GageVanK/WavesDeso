@@ -300,7 +300,7 @@ export default function Wave() {
       await submitPost({
         UpdaterPublicKeyBase58Check: currentUser.PublicKeyBase58Check,
         BodyObj: {
-          Body: `Come Watch ${`${profile?.Username}'s Wave`}\nvisit: \nhttps://desowaves.vercel.app/wave/${
+          Body: `Come Watch ${`${profile?.Username}'s Wave`}\nvisit: \nhttps://wavestv.app/wave/${
             profile?.Username
           }`,
           VideoURLs: [`https://lvpr.tv/?v=${streamPlaybackId}`],
@@ -670,10 +670,7 @@ export default function Wave() {
                 <Group justify="space-between">
                   <Group>
                     <ActionIcon.Group>
-                      <CopyButton
-                        value={`https://desowaves.vercel.app/wave/${userName}`}
-                        timeout={2000}
-                      >
+                      <CopyButton value={`https://wavestv.app/wave/${userName}`} timeout={2000}>
                         {({ copied, copy }) => (
                           <>
                             <Tooltip label={copied ? 'Copied' : `Copy Wave Link`}>
