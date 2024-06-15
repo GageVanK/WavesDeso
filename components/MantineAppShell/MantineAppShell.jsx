@@ -113,7 +113,7 @@ export function MantineAppShell({ children }) {
           <Group justify="space-between">
             {!navOpened && (
               <Tooltip position="right-start" label="Open Navbar">
-                <Group justify="left">
+                <Group justify="left" mt={15} ml={10} style={{ position: 'fixed', zIndex: 9999 }}>
                   <ActionIcon variant="light" onClick={toggleNav} visibleFrom="sm">
                     <RiArrowRightDoubleLine />
                   </ActionIcon>
@@ -124,7 +124,7 @@ export function MantineAppShell({ children }) {
             {!asideOpened && (
               <Tooltip position="right-start" label="Open Sidebar">
                 <Group
-                  mt={10}
+                  mt={15}
                   mr={10}
                   justify="right"
                   style={{ position: 'fixed', zIndex: 9999, right: '1px' }}
@@ -140,11 +140,14 @@ export function MantineAppShell({ children }) {
           <Group justify="space-between">
             <Tooltip label="Global Chat">
               <ActionIcon
+                mt={20}
+                mr={10}
                 variant="gradient"
                 gradient={{ from: 'blue', to: 'cyan', deg: 90 }}
                 size="xl"
                 radius="xl"
                 onClick={openChat}
+                style={{ position: 'fixed', zIndex: 9999 }}
               >
                 <LiaGlobeSolid size="2rem" />
               </ActionIcon>
@@ -165,7 +168,6 @@ export function MantineAppShell({ children }) {
               </Tooltip>
             </Group>
           </Group>
-          <Space h="md" />
           {children}
         </AppShell.Main>
       </AppShell>
