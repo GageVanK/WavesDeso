@@ -164,7 +164,7 @@ export function MantineHeader() {
                   </Menu.Target>
                 </Tooltip>
 
-                <Menu.Dropdown>
+                <Menu.Dropdown w={400}>
                   <Space h="xs" />
                   <Group justify="right">
                     <Button
@@ -180,8 +180,10 @@ export function MantineHeader() {
                     </Button>
                   </Group>
 
-                  <ScrollArea h={555}>
-                    <NotificationsPage />
+                  <ScrollArea h={555} w={400}>
+                    <div style={{ width: '400px' }}>
+                      <NotificationsPage />
+                    </div>
                   </ScrollArea>
                 </Menu.Dropdown>
               </Menu>
