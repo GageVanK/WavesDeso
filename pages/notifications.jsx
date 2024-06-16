@@ -70,7 +70,18 @@ export default function NotificationsPage() {
         PublicKeyBase58Check: currentUser?.PublicKeyBase58Check,
         NumToFetch: 25,
         FetchStartIndex: loadMore ? lastIndex : -1,
+        FilteredOutNotificationCategories: {
+          LIKE: false,
+          COMMENT: false,
+          REPOST: false,
+          MENTION: false,
+          DIAMOND: false,
+          CREATOR_COIN: true,
+          TRANSFER: false,
+          FOLLOW: true,
+        },
       };
+
   
       const notificationData = await getNotifications(params);
       

@@ -54,6 +54,9 @@ import { PiSealQuestion } from 'react-icons/pi';
 import { useRouter } from 'next/router';
 import { RiArrowRightDoubleLine, RiArrowLeftDoubleLine } from 'react-icons/ri';
 import { ColorSchemeToggle } from '@/components/ColorSchemeToggle/ColorSchemeToggle';
+import { Chat } from '@/components/Chat';
+import { useDisclosure } from '@mantine/hooks';
+import { LiaGlobeSolid } from 'react-icons/lia';
 
 const linksData = [
   { icon: IconHome2, label: 'Home', href: '/' },
@@ -63,6 +66,7 @@ const linksData = [
 ];
 
 export function MantineNavBar({ navOpened, toggleNav }) {
+  const [openedChat, { open: openChat, close: closeChat }] = useDisclosure(false);
   const [wavesFeed, setWavesFeed] = useState([]);
   const [followingWaves, setFollowingWaves] = useState([]);
   const [isFollowing, setIsFollowing] = useState();
@@ -79,6 +83,7 @@ export function MantineNavBar({ navOpened, toggleNav }) {
       key={link.label}
     >
       <UnstyledButton
+        mt={5}
         onClick={() => {
           setActive(link.label);
           router.push(`/${link.href}`);
@@ -233,10 +238,29 @@ export function MantineNavBar({ navOpened, toggleNav }) {
 
   return (
     <>
+      <Modal p="md" opened={openedChat} onClose={closeChat}>
+        <Chat handle="Global Wave" />
+      </Modal>
+
       <nav className={`${classes.navbar}`}>
         <div className={classes.wrapper}>
           <div className={classes.aside}>
             <Space h={50} />
+
+            <Tooltip label="Global Chat">
+              <ActionIcon
+                variant="gradient"
+                mt={10}
+                gradient={{ from: 'blue', to: 'cyan', deg: 90 }}
+                size="xl"
+                radius="xl"
+                onClick={openChat}
+                style={{ position: 'fixed', zIndex: 9999 }}
+              >
+                <LiaGlobeSolid size="2rem" />
+              </ActionIcon>
+            </Tooltip>
+            <Space h="sm" />
 
             {mainLinks}
           </div>

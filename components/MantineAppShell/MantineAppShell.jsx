@@ -137,11 +137,11 @@ export function MantineAppShell({ children }) {
             )}
           </Group>
           <Space h="md" />
-          <Group justify="space-between">
+
+          <Group hiddenFrom="md">
             <Tooltip label="Global Chat">
               <ActionIcon
-                mt={20}
-                mr={10}
+                mt={40}
                 variant="gradient"
                 gradient={{ from: 'blue', to: 'cyan', deg: 90 }}
                 size="xl"
@@ -152,22 +152,22 @@ export function MantineAppShell({ children }) {
                 <LiaGlobeSolid size="2rem" />
               </ActionIcon>
             </Tooltip>
-
-            <Group justify="right" hiddenFrom="md">
-              <Tooltip label="Spotlight">
-                <ActionIcon
-                  variant="gradient"
-                  gradient={{ from: 'blue', to: 'cyan', deg: 90 }}
-                  size="xl"
-                  radius="xl"
-                  hiddenFrom="md"
-                  onClick={open}
-                >
-                  <PiShootingStarLight size="1.4rem" />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
           </Group>
+          <Group justify="flex-end" hiddenFrom="md">
+            <Tooltip label="Spotlight">
+              <ActionIcon
+                variant="gradient"
+                gradient={{ from: 'blue', to: 'cyan', deg: 90 }}
+                size="xl"
+                radius="xl"
+                hiddenFrom="md"
+                onClick={open}
+              >
+                <PiShootingStarLight size="1.4rem" />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
+
           {children}
         </AppShell.Main>
       </AppShell>
