@@ -300,6 +300,7 @@ export function MantineNavBar({ navOpened, toggleNav }) {
                           component={Link}
                           href={`/wave/${post.ProfileEntryResponse.Username}`}
                           className={classes.user}
+                         
                         >
                           <Group>
                             <Avatar
