@@ -1775,24 +1775,19 @@ export default function Post({ post, username }) {
                     {post.ImageURLs.map((url, index) => (
                       <Carousel.Slide key={index}>
                         <Box style={{ position: 'relative', width: '100%' }}>
-                          <AspectRatio ratio={16 / 9} mx="auto">
-                            <Image
-                              src={url}
-                              alt={`Uploaded Image ${index}`}
-                              maw={777}
-                              mah={437}
-                              fit="-moz-initial"
-                            />
-                          </AspectRatio>
+                          <Image
+                            src={url}
+                            alt={`Uploaded Image ${index}`}
+                            mah={437}
+                            fit="-moz-initial"
+                          />
                         </Box>
                       </Carousel.Slide>
                     ))}
                   </Carousel>
                 ) : (
                   <Box style={{ position: 'relative', width: '100%' }}>
-                    <AspectRatio ratio={16 / 9} mx="auto">
-                      <Image src={post.ImageURLs[0]} maw={777} alt="puppies" />
-                    </AspectRatio>
+                    <Image src={post.ImageURLs[0]} maw={777} alt="puppies" />
                   </Box>
                 ))}
             </Card.Section>
